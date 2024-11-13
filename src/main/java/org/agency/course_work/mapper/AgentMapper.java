@@ -5,6 +5,7 @@ import org.agency.course_work.dto.AgentDto;
 import org.agency.course_work.entity.Agent;
 import org.mapstruct.*;
 
+
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AgentMapper {
     Agent toEntity(AgentDto agentDto);
@@ -15,6 +16,5 @@ public interface AgentMapper {
     Agent partialUpdate(AgentDto agentDto, @MappingTarget Agent agent);
 
     Agent toEntity(AgentCreationDto agentCreationDto);
-
 
 }
