@@ -9,6 +9,8 @@ import org.agency.course_work.repository.AgentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional
 public class AgentService {
@@ -30,5 +32,10 @@ public class AgentService {
         return agentMapper.toDto(agentRepository.save(agentMapper.toEntity(agent)));
     }
 
-
+    @Transactional(readOnly = true)
+    public List<AgentDto> getAllAgents() {
+    return agentRepository.findAll().stream()
+        .map(agentMapper::toDto)
+        .toList();
+    }
 }

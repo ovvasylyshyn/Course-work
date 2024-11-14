@@ -12,5 +12,6 @@ import java.math.BigDecimal;
 public record PlayerCreationDto(@Size(max = 255) @NotBlank String name, @Size(max = 255) @NotBlank String surname,
                                 @Min(10) @Max(99) @Positive int age, @NotNull PlayerPosition position,
                                 @Size(max = 255) @NotBlank String nationality,
-                                @NotNull @Positive BigDecimal value) implements Serializable {
+                                @NotNull @Positive BigDecimal value,
+                                @NotNull Long agentId) implements Serializable {
 }
