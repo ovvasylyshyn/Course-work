@@ -49,4 +49,11 @@ public ResponseEntity<PlayerDto> createPlayer(@RequestBody PlayerCreationDto pla
         PlayerAgentDto playerAgentDto = playerService.getPlayerWithAgent(id);
         return ResponseEntity.ok(playerAgentDto);
     }
+
+    @GetMapping("/agent/{agentId}/players")
+    public ResponseEntity<List<PlayerDto>> getPlayersByAgent(@PathVariable Long agentId) {
+        List<PlayerDto> players = playerService.getPlayersByAgent(agentId);
+        return ResponseEntity.ok(players);
+    }
+
 }
