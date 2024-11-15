@@ -9,6 +9,7 @@ import org.agency.course_work.enums.City;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * DTO for {@link org.agency.course_work.entity.Match}
@@ -16,5 +17,6 @@ import java.time.LocalDateTime;
 public record MatchCreationDto(@NotNull @PastOrPresent LocalDate date, @NotNull City city,
                                @Pattern(regexp = "^\\d{1,2}:\\d{1,2}$",
                                        message = "Score must be in the format 'X:Y', where X and Y are numbers between 0 and 99.")
-                               @NotBlank String score) implements Serializable {
+                               @NotBlank String score,
+                               @NotNull List<Long> clubIds ) implements Serializable {
 }

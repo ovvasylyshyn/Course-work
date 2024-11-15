@@ -21,12 +21,17 @@ private final MatchService matchService;
         return ResponseEntity.ok(matchService.getMatchById(id));
     }
 
-    @PostMapping
-    public ResponseEntity<MatchDto> createMatch(@Valid @RequestBody MatchCreationDto matchDto) {
-        MatchDto createdMatch = matchService.createMatch(matchDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdMatch);
-    }
+//    @PostMapping
+//    public ResponseEntity<MatchDto> createMatch(@Valid @RequestBody MatchCreationDto matchDto) {
+//        MatchDto createdMatch = matchService.createMatch(matchDto);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(createdMatch);
+//    }
 
+    @PostMapping
+    public ResponseEntity<MatchDto> createMatch(@RequestBody @Valid MatchCreationDto matchDto) {
+        MatchDto savedMatch = matchService.createMatch(matchDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedMatch);
+    }
     @GetMapping
     public ResponseEntity<List<MatchDto>> getAllMatches(){
         return ResponseEntity.ok(matchService.getAllMatches());
