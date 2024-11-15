@@ -13,5 +13,6 @@ public record PlayerCreationDto(@Size(max = 255) @NotBlank String name, @Size(ma
                                 @Min(10) @Max(99) @Positive int age, @NotNull PlayerPosition position,
                                 @Size(max = 255) @NotBlank String nationality,
                                 @NotNull @Positive BigDecimal value,
-                                @NotNull Long agentId) implements Serializable {
+                                @NotNull Long agentId,
+                                @NotNull Long clubId) implements Serializable {
 }
