@@ -23,17 +23,8 @@ public class PlayerController {
         return ResponseEntity.ok(playerService.getPlayerById(id));
     }
 
-//    @PostMapping
-//    public ResponseEntity<PlayerDto> addPlayer(@Valid @RequestBody PlayerCreationDto playerCreationDto){
-//        return new ResponseEntity<>(playerService.createPlayer(playerCreationDto), HttpStatus.CREATED);
-//    }
-//@PostMapping("/create")
-//public ResponseEntity<PlayerDto> createPlayer(@RequestBody PlayerCreationDto playerDto, @RequestParam Long agentId) {
-//    PlayerDto createdPlayer = playerService.createPlayer(playerDto, agentId);
-//    return ResponseEntity.status(HttpStatus.CREATED).body(createdPlayer);
-//}
 @PostMapping("/create")
-public ResponseEntity<PlayerDto> createPlayer(@RequestBody PlayerCreationDto playerDto) {
+public ResponseEntity<PlayerDto> createPlayer(@Valid @RequestBody PlayerCreationDto playerDto) {
     PlayerDto createdPlayer = playerService.createPlayer(playerDto);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdPlayer);
 }

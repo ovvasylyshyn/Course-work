@@ -14,5 +14,8 @@ import java.time.LocalDate;
  */
 public record ContractCreationDto(@NotNull @PastOrPresent LocalDate startDate,
                                   @NotNull @FutureOrPresent LocalDate endDate,
-                                  @NotNull @Positive BigDecimal salary) implements Serializable {
+                                  @NotNull @Positive BigDecimal salary,
+                                  @NotNull Long playerId,
+                                  @NotNull Long agentId,
+                                  Long clubId) implements Serializable {
 }
