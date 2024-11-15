@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.agency.course_work.enums.City;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,7 +17,7 @@ import java.util.Set;
 @Getter
 @ToString
 public class Match extends BaseEntity {
-    private LocalDateTime date;
+    private LocalDate date;
 
 @Enumerated(EnumType.STRING)
     private City city;
