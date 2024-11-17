@@ -36,4 +36,16 @@ private final MatchService matchService;
     public ResponseEntity<List<MatchDto>> getAllMatches(){
         return ResponseEntity.ok(matchService.getAllMatches());
     }
+
+    @GetMapping("/matches")
+    public ResponseEntity<List<MathesWithClubsDto>> getAllMatchesWithClubs() {
+        List<MathesWithClubsDto> matches = matchService.getMatchesWithClubs();
+        return ResponseEntity.ok(matches);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<MatchDto> updateMatch(@PathVariable Long id, @RequestBody @Valid MatchDto matchDto) {
+        MatchDto updatedMatch = matchService.updateMatch(id, matchDto);
+        return ResponseEntity.ok(updatedMatch);
+    }
 }

@@ -62,4 +62,13 @@ public class ContractService {
                 .map(contractMapper::toDto)
                 .toList();
     }
+
+    @Transactional
+    public ContractDto updateContract(Long id, ContractDto contractDto) {
+        Contract contract = contractRepository.findById(id)
+                .orElseThrow(() -> new ContractNotFound("Contract not found"));
+        contractMapper.partialUpdate(contractDto, contract);
+        return contractMapper.toDto(contractRepository.save(contract));
+    }
+
 }

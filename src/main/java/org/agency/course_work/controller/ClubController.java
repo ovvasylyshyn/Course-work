@@ -3,7 +3,6 @@ package org.agency.course_work.controller;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.agency.course_work.dto.AgentDto;
 import org.agency.course_work.dto.ClubCreationDto;
 import org.agency.course_work.dto.ClubDto;
 import org.agency.course_work.service.ClubService;
@@ -32,5 +31,11 @@ public class ClubController {
     @GetMapping("{id}")
     public ResponseEntity<ClubDto> getClubById(@PathVariable("id") Long id) {
             return ResponseEntity.ok(clubService.getClubById(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ClubDto> updateClub(@PathVariable Long id, @RequestBody @Valid ClubDto clubDto) {
+        ClubDto updatedClub = clubService.updateClub(id, clubDto);
+        return ResponseEntity.ok(updatedClub);
     }
 }

@@ -35,4 +35,11 @@ public ClubDto createClub(ClubCreationDto club) {
             .map(clubMapper::toDto)
             .toList();
 }
+
+    public ClubDto updateClub(Long id, ClubDto clubDto) {
+        Club club = clubRepository.findById(id)
+                .orElseThrow(() -> new ClubNotFound("Club not found"));
+        clubMapper.partialUpdate(clubDto, club);
+        return clubMapper.toDto(clubRepository.save(club));
+    }
 }

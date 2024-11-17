@@ -38,4 +38,12 @@ public class AgentService {
         .map(agentMapper::toDto)
         .toList();
     }
+
+    public AgentDto updateAgent(Long id, AgentDto agentDto) {
+        Agent agent = agentRepository.findById(id)
+                .orElseThrow(() -> new AgentNotFound("Agent not found"));
+        agentMapper.partialUpdate(agentDto, agent);
+        return agentMapper.toDto(agentRepository.save(agent));
+    }
+
 }

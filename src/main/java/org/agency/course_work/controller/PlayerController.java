@@ -47,4 +47,9 @@ public ResponseEntity<PlayerDto> createPlayer(@Valid @RequestBody PlayerCreation
         return ResponseEntity.ok(players);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<PlayerDto> updatePlayer(@PathVariable Long id, @RequestBody @Valid PlayerDto playerDto) {
+        PlayerDto updatedPlayer = playerService.updatePlayer(id,playerDto);
+        return ResponseEntity.ok(updatedPlayer);
+    }
 }

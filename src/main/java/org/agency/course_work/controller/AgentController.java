@@ -30,4 +30,10 @@ public class AgentController {
     public ResponseEntity<List<AgentDto>> getAllAgents() {
         return ResponseEntity.ok(agentService.getAllAgents());
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<AgentDto> updateAgent(@PathVariable Long id, @RequestBody @Valid AgentDto agentDto) {
+        AgentDto updatedAgent = agentService.updateAgent(id, agentDto);
+        return ResponseEntity.ok(updatedAgent);
+    }
 }

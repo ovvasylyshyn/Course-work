@@ -5,6 +5,7 @@ import org.agency.course_work.enums.City;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * DTO for {@link org.agency.course_work.entity.Match}

@@ -90,4 +90,10 @@ public class PlayerService {
                 .toList();
     }
 
+    public PlayerDto updatePlayer(Long id, PlayerDto playerDto) {
+        Player player = playerRepository.findById(id)
+                .orElseThrow(() -> new PlayerNotFound("Player not found"));
+        playerMapper.partialUpdate(playerDto, player);
+        return playerMapper.toDto(playerRepository.save(player));
+    }
 }

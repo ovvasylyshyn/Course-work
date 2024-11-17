@@ -2,14 +2,13 @@ package org.agency.course_work.controller;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.agency.course_work.dto.ContractCreationDto;
-import org.agency.course_work.dto.ContractDto;
-import org.agency.course_work.dto.PlayerCreationDto;
-import org.agency.course_work.dto.PlayerDto;
+import org.agency.course_work.dto.*;
 import org.agency.course_work.service.ContractService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @AllArgsConstructor
@@ -26,5 +25,16 @@ public class ContractController {
     public ResponseEntity<ContractDto> createContract(@Valid @RequestBody ContractCreationDto contractDto) {
         ContractDto createdContract = contractService.createContract(contractDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdContract);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ContractDto>> getAllContracts() {
+        return ResponseEntity.ok(contractService.getAllContracts());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ContractDto> updateContract(@PathVariable Long id, @RequestBody @Valid ContractDto contractDto) {
+        ContractDto updatedContract = contractService.updateContract(id, contractDto);
+        return ResponseEntity.ok(updatedContract);
     }
 }

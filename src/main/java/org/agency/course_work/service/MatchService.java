@@ -3,9 +3,9 @@ package org.agency.course_work.service;
 import lombok.AllArgsConstructor;
 import org.agency.course_work.dto.MatchCreationDto;
 import org.agency.course_work.dto.MatchDto;
+import org.agency.course_work.dto.MathesWithClubsDto;
 import org.agency.course_work.entity.Club;
 import org.agency.course_work.entity.Match;
-import org.agency.course_work.exception.ClubNotFound;
 import org.agency.course_work.exception.MatchNotFound;
 import org.agency.course_work.mapper.MatchMapper;
 import org.agency.course_work.repository.ClubRepository;
@@ -13,7 +13,9 @@ import org.agency.course_work.repository.MatchRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @AllArgsConstructor
@@ -42,13 +44,36 @@ public class MatchService {
             }
             Match savedMatch = matchRepository.save(matchCreated);
             return matchMapper.toDto(savedMatch);
-
     }
 
     public List<MatchDto> getAllMatches() {
         return matchRepository.findAll().stream()
                 .map(matchMapper::toDto)
                 .toList();
+    }
+
+    public List<MathesWithClubsDto> getMatchesWithClubs() {
+        return matchRepository.findAll().stream()
+                .map(match -> new MathesWithClubsDto(
+                        match.getId(),
+                        match.getCreatedAt(),
+                        match.getUpdatedAt(),
+                        match.getDate(),
+                        match.getCity(),
+                        match.getScore(),
+                        match.getClubs().stream()
+                                .map(Club::getName)
+                                .toList()
+                ))
+                .toList();
+    }
+
+    @Transactional
+    public MatchDto updateMatch(Long id, MatchDto matchDto) {
+        Match match = matchRepository.findById(id)
+                .orElseThrow(() -> new MatchNotFound("Match not found"));
+        matchMapper.partialUpdate(matchDto, match);
+        return matchMapper.toDto(matchRepository.save(match));
     }
 }
 

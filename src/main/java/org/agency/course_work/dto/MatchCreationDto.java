@@ -18,5 +18,5 @@ public record MatchCreationDto(@NotNull @PastOrPresent LocalDate date, @NotNull 
                                @Pattern(regexp = "^\\d{1,2}:\\d{1,2}$",
                                        message = "Score must be in the format 'X:Y', where X and Y are numbers between 0 and 99.")
                                @NotBlank String score,
-                               @NotNull List<Long> clubIds ) implements Serializable {
+                               @NotNull List<Long> clubIds) implements Serializable {
 }
