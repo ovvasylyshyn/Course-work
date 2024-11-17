@@ -197,5 +197,4 @@ public class PlayerService {
                         player.getAge(), player.getPosition(), player.getNationality(), player.getValue()))
                 .toList();
     }
-
 }

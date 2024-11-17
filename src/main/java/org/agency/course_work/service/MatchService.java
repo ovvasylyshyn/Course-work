@@ -6,6 +6,7 @@ import org.agency.course_work.dto.MatchDto;
 import org.agency.course_work.dto.MathesWithClubsDto;
 import org.agency.course_work.entity.Club;
 import org.agency.course_work.entity.Match;
+import org.agency.course_work.enums.City;
 import org.agency.course_work.exception.MatchNotFound;
 import org.agency.course_work.mapper.MatchMapper;
 import org.agency.course_work.repository.ClubRepository;
@@ -13,6 +14,7 @@ import org.agency.course_work.repository.MatchRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -55,12 +57,8 @@ public class MatchService {
     public List<MathesWithClubsDto> getMatchesWithClubs() {
         return matchRepository.findAll().stream()
                 .map(match -> new MathesWithClubsDto(
-                        match.getId(),
-                        match.getCreatedAt(),
-                        match.getUpdatedAt(),
-                        match.getDate(),
-                        match.getCity(),
-                        match.getScore(),
+                        match.getId(), match.getCreatedAt(), match.getUpdatedAt(), match.getDate(),
+                        match.getCity(), match.getScore(),
                         match.getClubs().stream()
                                 .map(Club::getName)
                                 .toList()
@@ -75,6 +73,73 @@ public class MatchService {
         matchMapper.partialUpdate(matchDto, match);
         return matchMapper.toDto(matchRepository.save(match));
     }
+
+    public List<MatchDto> getSortedMatches(String sortBy, String order) {
+        List<Match> matches = matchRepository.findAll();
+        List<Match> sortedMatches;
+        switch (sortBy) {
+            case "date":
+                sortedMatches = matches.stream()
+                        .sorted((m1, m2) -> order.equalsIgnoreCase("asc") ?
+                                m1.getDate().compareTo(m2.getDate()) :
+                                m2.getDate().compareTo(m1.getDate()))
+                        .toList();
+                break;
+            case "city":
+                sortedMatches = matches.stream()
+                        .sorted((m1, m2) -> order.equalsIgnoreCase("asc") ?
+                                m1.getCity().compareTo(m2.getCity()) :
+                                m2.getCity().compareTo(m1.getCity()))
+                        .toList();
+                break;
+            case "score":
+                sortedMatches = matches.stream()
+                        .sorted((m1, m2) -> order.equalsIgnoreCase("asc") ?
+                                m1.getScore().compareTo(m2.getScore()) :
+                                m2.getScore().compareTo(m1.getScore()))
+                        .toList();
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported sorting parameter: " + sortBy);
+        }
+        return sortedMatches.stream()
+                .map(match -> new MatchDto(
+                        match.getId(), match.getCreatedAt(), match.getUpdatedAt(),
+                        match.getDate(), match.getCity(), match.getScore()))
+                .toList();
+    }
+
+    public List<MatchDto> getFilteredMatches(LocalDate startDate, LocalDate endDate, City city, String score) {
+        List<Match> matches = matchRepository.findAll();
+        if (startDate != null) {
+            matches = matches.stream()
+                    .filter(match -> match.getDate() != null && !match.getDate().isBefore(startDate))
+                    .toList();
+        }
+        if (endDate != null) {
+            matches = matches.stream()
+                    .filter(match -> match.getDate() != null && !match.getDate().isAfter(endDate))
+                    .toList();
+        }
+        if (city != null) {
+            matches = matches.stream()
+                    .filter(match -> match.getCity().equals(city))
+                    .toList();
+        }
+        if (score != null && !score.isEmpty()) {
+            matches = matches.stream()
+                    .filter(match -> match.getScore().equalsIgnoreCase(score))
+                    .toList();
+        }
+
+        return matches.stream()
+                .map(match -> new MatchDto(
+                        match.getId(), match.getCreatedAt(), match.getUpdatedAt(),
+                        match.getDate(), match.getCity(), match.getScore()))
+                .toList();
+    }
+
+
 }
 
 

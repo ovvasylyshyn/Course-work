@@ -18,6 +18,8 @@ import org.agency.course_work.repository.PlayerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -70,5 +72,70 @@ public class ContractService {
         contractMapper.partialUpdate(contractDto, contract);
         return contractMapper.toDto(contractRepository.save(contract));
     }
+
+    public List<ContractDto> getSortedContracts(String sortBy, String order) {
+        List<Contract> contracts = contractRepository.findAll();
+        List<Contract> sortedContracts;
+        switch (sortBy) {
+            case "startDate":
+                sortedContracts = contracts.stream()
+                        .sorted((c1, c2) -> order.equalsIgnoreCase("asc") ?
+                                c1.getStartDate().compareTo(c2.getStartDate()) :
+                                c2.getStartDate().compareTo(c1.getStartDate()))
+                        .toList();
+                break;
+            case "endDate":
+                sortedContracts = contracts.stream()
+                        .sorted((c1, c2) -> order.equalsIgnoreCase("asc") ?
+                                c1.getEndDate().compareTo(c2.getEndDate()) :
+                                c2.getEndDate().compareTo(c1.getEndDate()))
+                        .toList();
+                break;
+            case "salary":
+                sortedContracts = contracts.stream()
+                        .sorted((c1, c2) -> order.equalsIgnoreCase("asc") ?
+                                c1.getSalary().compareTo(c2.getSalary()) :
+                                c2.getSalary().compareTo(c1.getSalary()))
+                        .toList();
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported sorting parameter: " + sortBy);
+        }
+        return sortedContracts.stream()
+                .map(contract -> new ContractDto(
+                        contract.getId(), contract.getCreatedAt(), contract.getUpdatedAt(),
+                        contract.getStartDate(), contract.getEndDate(), contract.getSalary()))
+                .toList();
+    }
+
+    public List<ContractDto> getFilteredContracts(LocalDate startDate, LocalDate endDate, BigDecimal minSalary, BigDecimal maxSalary) {
+        List<Contract> contracts = contractRepository.findAll();
+        if (startDate != null) {
+            contracts = contracts.stream()
+                    .filter(contract -> contract.getStartDate() != null && !contract.getStartDate().isBefore(startDate))
+                    .toList();
+        }
+        if (endDate != null) {
+            contracts = contracts.stream()
+                    .filter(contract -> contract.getEndDate() != null && !contract.getEndDate().isAfter(endDate))
+                    .toList();
+        }
+        if (minSalary != null) {
+            contracts = contracts.stream()
+                    .filter(contract -> contract.getSalary() != null && contract.getSalary().compareTo(minSalary) >= 0)
+                    .toList();
+        }
+        if (maxSalary != null) {
+            contracts = contracts.stream()
+                    .filter(contract -> contract.getSalary() != null && contract.getSalary().compareTo(maxSalary) <= 0)
+                    .toList();
+        }
+        return contracts.stream()
+                .map(contract -> new ContractDto(
+                        contract.getId(), contract.getCreatedAt(), contract.getUpdatedAt(), contract.getStartDate(),
+                        contract.getEndDate(), contract.getSalary()))
+                .toList();
+    }
+
 
 }
