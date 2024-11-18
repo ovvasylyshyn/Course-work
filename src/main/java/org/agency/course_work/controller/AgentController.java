@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/agent")
+@RequestMapping("api/agents")
 @AllArgsConstructor
 public class AgentController {
     private final AgentService agentService;

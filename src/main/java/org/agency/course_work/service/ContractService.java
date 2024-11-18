@@ -15,6 +15,7 @@ import org.agency.course_work.repository.AgentRepository;
 import org.agency.course_work.repository.ClubRepository;
 import org.agency.course_work.repository.ContractRepository;
 import org.agency.course_work.repository.PlayerRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -37,6 +37,7 @@ public class ContractService {
     private final PlayerRepository playerRepository;
     private final AgentRepository agentRepository;
 
+    @Cacheable(value = "contracts",key = "#id")
     public ContractDto getContractById(Long id) {
         Contract contract = contractRepository.findById(id).orElseThrow(() -> new ContractNotFound("Contract not found"));
         return contractMapper.toDto(contract);
@@ -64,6 +65,7 @@ public class ContractService {
         return contractMapper.toDto(savedContract);
     }
 
+    @Cacheable(value = "contracts")
     public Page<ContractDto> getAllContracts(Pageable pageable) {
         return contractRepository.findAll(pageable).map(contractMapper::toDto);
     }

@@ -7,6 +7,7 @@ import org.agency.course_work.enums.CommissionRate;
 import org.agency.course_work.exception.AgentNotFound;
 import org.agency.course_work.mapper.AgentMapper;
 import org.agency.course_work.repository.AgentRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +16,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 
 @Service
 @Transactional
@@ -29,16 +29,20 @@ public class AgentService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "agents", key = "#id")
     public AgentDto getAgentById(Long id) {
-        Agent agent = agentRepository.findById(id).orElseThrow(() -> new AgentNotFound("Agent not found"));
+        Agent agent = agentRepository.findById(id)
+                .orElseThrow(() -> new AgentNotFound("Agent not found"));
         return agentMapper.toDto(agent);
     }
+
 
     public AgentDto createAgent(AgentCreationDto agent) {
         return agentMapper.toDto(agentRepository.save(agentMapper.toEntity(agent)));
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "agents")
     public Page<AgentDto> getAllAgents(Pageable pageable) {
         return agentRepository.findAll(pageable).map(agentMapper::toDto);
     }

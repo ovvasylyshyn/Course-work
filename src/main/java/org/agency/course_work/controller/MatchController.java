@@ -18,7 +18,7 @@ import java.util.List;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("api/match")
+@RequestMapping("api/matches")
 public class MatchController {
 private final MatchService matchService;
 

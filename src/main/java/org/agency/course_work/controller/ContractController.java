@@ -18,7 +18,7 @@ import java.util.List;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("api/contract")
+@RequestMapping("api/contracts")
 public class ContractController {
     private final ContractService contractService;
 

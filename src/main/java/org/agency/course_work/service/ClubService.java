@@ -8,6 +8,7 @@ import org.agency.course_work.enums.Stadium;
 import org.agency.course_work.exception.ClubNotFound;
 import org.agency.course_work.mapper.ClubMapper;
 import org.agency.course_work.repository.ClubRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -27,6 +27,7 @@ private final ClubRepository clubRepository;
 private final ClubMapper clubMapper;
 
 @Transactional(readOnly = true)
+@Cacheable(value = "clubs", key = "#id")
     public ClubDto getClubById(Long id) {
     Club club = clubRepository.findById(id).orElseThrow(()-> new ClubNotFound("Club not found"));
     return clubMapper.toDto(club);
@@ -37,6 +38,7 @@ public ClubDto createClub(ClubCreationDto club) {
 }
 
 @Transactional(readOnly = true)
+@Cacheable(value = "clubs")
 public Page<ClubDto> getAllClubs(Pageable pageable) {
     return clubRepository.findAll(pageable).map(clubMapper::toDto);
 }

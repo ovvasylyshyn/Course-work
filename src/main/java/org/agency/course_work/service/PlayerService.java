@@ -18,6 +18,8 @@ import org.agency.course_work.mapper.PlayerMapper;
 import org.agency.course_work.repository.AgentRepository;
 import org.agency.course_work.repository.ClubRepository;
 import org.agency.course_work.repository.PlayerRepository;
+import org.checkerframework.checker.units.qual.C;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,12 +42,14 @@ public class PlayerService {
     private final ClubRepository clubRepository;
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "players", key = "#id")
     public PlayerDto getPlayerById(Long id) {
         Player player = playerRepository.findById(id).orElseThrow(()->new PlayerNotFound("Player not found"));
         return playerMapper.toDto(player);
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "players")
     public Page<PlayerDto> getAllPlayers(Pageable pageable) {
         return playerRepository.findAll(pageable).map(playerMapper::toDto);
     }
@@ -68,11 +72,12 @@ public class PlayerService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "players", key = "#playerId")
     public PlayerAgentDto getPlayerWithAgent(Long playerId) {
         Player player = playerRepository.findById(playerId).orElseThrow(() -> new PlayerNotFound("Player not found"));
         Agent agent = player.getAgent();
         return new PlayerAgentDto(
-                player.getId(), player.getCreatedAt(), player.getUpdatedAt(), player.getName()+" "+ player.getSurname(),
+                player.getId(), player.getCreatedAt(), player.getUpdatedAt(), player.getName() + " " + player.getSurname(),
                 player.getAge(), player.getPosition(), player.getNationality(), player.getValue(),
                 agent != null ? agent.getId() : null, agent != null ? agent.getCreatedAt() : null,
                 agent != null ? agent.getUpdatedAt() : null, agent != null ? agent.getFirstName() : null,
@@ -82,6 +87,7 @@ public class PlayerService {
     }
 
 @Transactional(readOnly = true)
+@Cacheable(value = "players")
 public Page<PlayerDto> getPlayersByAgent(Long agentId, Pageable pageable) {
     if (!agentRepository.existsById(agentId)) {
         throw new AgentNotFound("Agent not found with ID: " + agentId);
@@ -98,6 +104,7 @@ public Page<PlayerDto> getPlayersByAgent(Long agentId, Pageable pageable) {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "players", key = "#playerId")
     public PlayerDetailsDto getPlayerDetails(Long playerId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new PlayerNotFound("Player with ID " + playerId + " not found."));
@@ -107,7 +114,7 @@ public Page<PlayerDto> getPlayersByAgent(Long agentId, Pageable pageable) {
                 .findFirst()
                 .orElseThrow(() -> new ContractNotFound("No contract found for player with ID " + playerId));
         return new PlayerDetailsDto(
-                player.getId(), player.getName()+" "+player.getSurname(), player.getAge(), player.getNationality(),
+                player.getId(), player.getName() + " " + player.getSurname(), player.getAge(), player.getNationality(),
                 player.getPosition(), player.getValue(), agent.getFirstName() + " " + agent.getLastName(),
                 agent.getPhoneNumber(), club.getName(), contract.getStartDate(), contract.getEndDate(), contract.getSalary()
         );

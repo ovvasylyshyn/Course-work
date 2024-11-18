@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 
 @RestController
-@RequestMapping("api/club")
+@RequestMapping("api/clubs")
 @AllArgsConstructor
 public class ClubController {
     private final ClubService clubService;

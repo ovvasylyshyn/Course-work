@@ -11,6 +11,7 @@ import org.agency.course_work.exception.MatchNotFound;
 import org.agency.course_work.mapper.MatchMapper;
 import org.agency.course_work.repository.ClubRepository;
 import org.agency.course_work.repository.MatchRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +31,7 @@ public class MatchService {
     private final MatchMapper matchMapper;
     private final ClubRepository clubRepository;
 
+    @Cacheable(value = "matches",key = "#id")
     public MatchDto getMatchById(Long id) {
         Match match = matchRepository.findById(id).orElseThrow(()-> new MatchNotFound("Match not found"));
         return matchMapper.toDto(match);
@@ -37,7 +39,6 @@ public class MatchService {
 
     @Transactional
     public MatchDto createMatch(MatchCreationDto match) {
-//        return matchMapper.toDto(matchRepository.save(matchMapper.toEntity(match)));
             Match matchCreated = matchMapper.toEntity(match);
             List<Club> clubs = clubRepository.findAllById(match.clubIds());
             if (clubs.size() != match.clubIds().size()) {
@@ -51,10 +52,12 @@ public class MatchService {
             return matchMapper.toDto(savedMatch);
     }
 
+    @Cacheable(value = "matches")
     public Page<MatchDto> getAllMatches(Pageable pageable) {
         return matchRepository.findAll(pageable).map(matchMapper::toDto);
     }
 
+    @Cacheable(value = "matches")
     public Page<MathesWithClubsDto> getMatchesWithClubs(Pageable pageable) {
         Page<Match> matchesPage = matchRepository.findAll(pageable);
         return matchesPage.map(match -> new MathesWithClubsDto(match.getId(), match.getCreatedAt(), match.getUpdatedAt(), match.getDate(),

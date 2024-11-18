@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/player")
+@RequestMapping("api/players")
 @AllArgsConstructor
 public class PlayerController {
     private PlayerService playerService;
@@ -34,11 +34,6 @@ public ResponseEntity<PlayerDto> createPlayer(@Valid @RequestBody PlayerCreation
     PlayerDto createdPlayer = playerService.createPlayer(playerDto);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdPlayer);
 }
-
-//    @GetMapping
-//    public ResponseEntity<List<PlayerDto>> getAllPlayers(){
-//        return ResponseEntity.ok(playerService.getAllPlayers());
-//    }\
 
     @GetMapping
     public Page<PlayerDto> getAllPlayers(@PageableDefault Pageable pageable) {
