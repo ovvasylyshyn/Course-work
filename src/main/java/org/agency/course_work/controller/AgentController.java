@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import org.agency.course_work.dto.AgentCreationDto;
 import org.agency.course_work.dto.AgentDto;
 import org.agency.course_work.service.AgentService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.agency.course_work.enums.CommissionRate;
@@ -27,10 +30,15 @@ public class AgentController {
     public ResponseEntity<AgentDto> createAgent(@Valid @RequestBody AgentCreationDto agentCreationtDto) {
         return new ResponseEntity(agentService.createAgent(agentCreationtDto), HttpStatus.CREATED);
     }
-    @GetMapping
-    public ResponseEntity<List<AgentDto>> getAllAgents() {
-        return ResponseEntity.ok(agentService.getAllAgents());
+
+@GetMapping
+public ResponseEntity<?> getAllAgents(@PageableDefault Pageable pageable) {
+    Page<AgentDto> agentDtos = agentService.getAllAgents(pageable);
+    if (agentDtos.isEmpty()) {
+        return new ResponseEntity<>("No agents found.", HttpStatus.NOT_FOUND);
     }
+    return new ResponseEntity<>(agentDtos, HttpStatus.OK);
+}
 
     @PutMapping("/{id}")
     public ResponseEntity<AgentDto> updateAgent(@PathVariable Long id, @RequestBody @Valid AgentDto agentDto) {
@@ -39,23 +47,23 @@ public class AgentController {
     }
 
     @GetMapping("/sort")
-    public ResponseEntity<List<AgentDto>> getSortedAgents(@RequestParam String sortBy, @RequestParam(defaultValue = "asc") String order) {
-        try {
-            List<AgentDto> sortedAgents = agentService.getSortedAgents(sortBy, order);
-            return ResponseEntity.ok(sortedAgents);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null);
-        }
-    }
-
-    @GetMapping("/filter")
-    public ResponseEntity<Object> getFilteredAgents(@RequestParam(required = false) String firstName, @RequestParam(required = false) String lastName,
-                                                    @RequestParam(required = false) String phoneNumber, @RequestParam(required = false) CommissionRate commissionRate) {
-        List<AgentDto> filteredAgents = agentService.getFilteredAgents(firstName, lastName, phoneNumber, commissionRate);
-        if (filteredAgents.isEmpty()) {
+    public ResponseEntity<?> getSortedAgents(@RequestParam String sortBy, @RequestParam String order, @PageableDefault Pageable pageable) {
+        Page<AgentDto> sortedAgents = agentService.getSortedAgents(sortBy, order, pageable);
+        if (sortedAgents.isEmpty()) {
             return new ResponseEntity<>("No agents found.", HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(filteredAgents, HttpStatus.OK);
+        return new ResponseEntity<>(sortedAgents, HttpStatus.OK);
     }
+
+@GetMapping("/filter")
+public ResponseEntity<?> getFilteredAgents(@RequestParam(required = false) String firstName, @RequestParam(required = false) String lastName, @RequestParam(required = false) String phoneNumber,
+        @RequestParam(required = false) CommissionRate commissionRate, @PageableDefault Pageable pageable) {
+    Page<AgentDto> filteredAgents = agentService.getFilteredAgents(firstName, lastName, phoneNumber, commissionRate, pageable);
+    if (filteredAgents.isEmpty()) {
+        return new ResponseEntity<>("No agents found.", HttpStatus.NOT_FOUND);
+    }
+    return new ResponseEntity<>(filteredAgents, HttpStatus.OK);
+}
+
 
 }

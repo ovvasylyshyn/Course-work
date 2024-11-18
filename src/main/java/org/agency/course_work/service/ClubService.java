@@ -8,6 +8,11 @@ import org.agency.course_work.enums.Stadium;
 import org.agency.course_work.exception.ClubNotFound;
 import org.agency.course_work.mapper.ClubMapper;
 import org.agency.course_work.repository.ClubRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,10 +37,8 @@ public ClubDto createClub(ClubCreationDto club) {
 }
 
 @Transactional(readOnly = true)
-    public List<ClubDto> getAllClubs() {
-    return clubRepository.findAll().stream()
-            .map(clubMapper::toDto)
-            .toList();
+public Page<ClubDto> getAllClubs(Pageable pageable) {
+    return clubRepository.findAll(pageable).map(clubMapper::toDto);
 }
 
     public ClubDto updateClub(Long id, ClubDto clubDto) {
@@ -46,81 +49,41 @@ public ClubDto createClub(ClubCreationDto club) {
     }
 
     @Transactional(readOnly = true)
-    public List<ClubDto> getSortedClubs(String sortBy, String order) {
-        List<Club> clubs = clubRepository.findAll();
-        List<Club> sortedClubs;
-        switch (sortBy) {
-            case "name":
-                sortedClubs = clubs.stream()
-                        .sorted((c1, c2) -> order.equals("asc") ?
-                                c1.getName().compareToIgnoreCase(c2.getName()) :
-                                c2.getName().compareToIgnoreCase(c1.getName()))
-                        .toList();
-                break;
-            case "stadium":
-                sortedClubs = clubs.stream()
-                        .sorted((c1, c2) -> order.equals("asc") ?
-                                c1.getStadium().compareTo(c2.getStadium()) :
-                                c2.getStadium().compareTo(c1.getStadium()))
-                        .toList();
-                break;
-            case "country":
-                sortedClubs = clubs.stream()
-                        .sorted((c1, c2) -> order.equals("asc") ?
-                                c1.getCountry().compareToIgnoreCase(c2.getCountry()) :
-                                c2.getCountry().compareToIgnoreCase(c1.getCountry()))
-                        .toList();
-                break;
-            case "budget":
-                sortedClubs = clubs.stream()
-                        .sorted((c1, c2) -> order.equals("asc") ?
-                                c1.getBudget().compareTo(c2.getBudget()) :
-                                c2.getBudget().compareTo(c1.getBudget()))
-                        .toList();
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported sorting parameter: " + sortBy);
-        }
-        return sortedClubs.stream()
-                .map(club -> new ClubDto(
-                        club.getId(), club.getCreatedAt(), club.getUpdatedAt(), club.getName(),
-                        club.getStadium(), club.getCountry(), club.getBudget()))
-                .toList();
+    public Page<ClubDto> getSortedClubs(String sortBy, String order, Pageable pageable) {
+        Sort sort = order.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        Page<Club> clubsPage = clubRepository.findAll(sortedPageable);
+        return clubsPage.map(club -> new ClubDto(club.getId(), club.getCreatedAt(), club.getUpdatedAt(), club.getName(),
+                club.getStadium(), club.getCountry(), club.getBudget()));
     }
 
     @Transactional(readOnly = true)
-    public List<ClubDto> getFilteredClubs(String name, Stadium stadium, String country, BigDecimal minBudget, BigDecimal maxBudget) {
-        List<Club> clubs = clubRepository.findAll();
+    public Page<ClubDto> getFilteredClubs(String name, Stadium stadium, String country, BigDecimal minBudget, BigDecimal maxBudget, Pageable pageable) {
+        Specification<Club> specification = Specification.where(null);
         if (name != null && !name.isEmpty()) {
-            clubs = clubs.stream()
-                    .filter(club -> club.getName().equalsIgnoreCase(name))
-                    .toList();
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
         }
         if (stadium != null) {
-            clubs = clubs.stream()
-                    .filter(club -> club.getStadium().equals(stadium))
-                    .toList();
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("stadium"), stadium));
         }
         if (country != null && !country.isEmpty()) {
-            clubs = clubs.stream()
-                    .filter(club -> club.getCountry().equalsIgnoreCase(country))
-                    .toList();
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(criteriaBuilder.lower(root.get("country")), country.toLowerCase()));
         }
         if (minBudget != null) {
-            clubs = clubs.stream()
-                    .filter(club -> club.getBudget() != null && club.getBudget().compareTo(minBudget) >= 0)
-                    .toList();
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.greaterThanOrEqualTo(root.get("budget"), minBudget));
         }
         if (maxBudget != null) {
-            clubs = clubs.stream()
-                    .filter(club -> club.getBudget() != null && club.getBudget().compareTo(maxBudget) <= 0)
-                    .toList();
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.lessThanOrEqualTo(root.get("budget"), maxBudget));
         }
-        return clubs.stream()
-                .map(club -> new ClubDto(
-                        club.getId(), club.getCreatedAt(), club.getUpdatedAt(), club.getName(),
-                        club.getStadium(), club.getCountry(), club.getBudget()))
-                .toList();
+        Page<Club> clubsPage = clubRepository.findAll(specification, pageable);
+        return clubsPage.map(club -> new ClubDto(club.getId(), club.getCreatedAt(), club.getUpdatedAt(), club.getName(),
+                club.getStadium(), club.getCountry(), club.getBudget()));
     }
+
 
 }

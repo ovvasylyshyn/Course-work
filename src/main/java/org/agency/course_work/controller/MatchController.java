@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import org.agency.course_work.dto.*;
 import org.agency.course_work.enums.City;
 import org.agency.course_work.service.MatchService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,20 +27,19 @@ private final MatchService matchService;
         return ResponseEntity.ok(matchService.getMatchById(id));
     }
 
-//    @PostMapping
-//    public ResponseEntity<MatchDto> createMatch(@Valid @RequestBody MatchCreationDto matchDto) {
-//        MatchDto createdMatch = matchService.createMatch(matchDto);
-//        return ResponseEntity.status(HttpStatus.CREATED).body(createdMatch);
-//    }
-
     @PostMapping
     public ResponseEntity<MatchDto> createMatch(@RequestBody @Valid MatchCreationDto matchDto) {
         MatchDto savedMatch = matchService.createMatch(matchDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedMatch);
     }
+
     @GetMapping
-    public ResponseEntity<List<MatchDto>> getAllMatches(){
-        return ResponseEntity.ok(matchService.getAllMatches());
+    public ResponseEntity<?> getAllMatches(@PageableDefault Pageable pageable) {
+        Page<MatchDto> matchDtos = matchService.getAllMatches(pageable);
+        if (matchDtos.isEmpty()) {
+            return new ResponseEntity<>("No matches found.", HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(matchDtos, HttpStatus.OK);
     }
 
     @GetMapping("/matches")
@@ -53,21 +55,22 @@ private final MatchService matchService;
     }
 
     @GetMapping("/sort")
-    public ResponseEntity<Object> getSortedMatches(@RequestParam String sortBy, @RequestParam String order) {
-        List<MatchDto> sortedMatches = matchService.getSortedMatches(sortBy, order);
+    public ResponseEntity<?> getSortedMatches(@RequestParam String sortBy, @RequestParam String order, @PageableDefault Pageable pageable) {
+        Page<MatchDto> sortedMatches = matchService.getSortedMatches(sortBy, order, pageable);
         if (sortedMatches.isEmpty()) {
             return new ResponseEntity<>("No matches found.", HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(sortedMatches, HttpStatus.OK);
     }
+
     @GetMapping("/filter")
-    public ResponseEntity<Object> getFilteredMatches(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-                                                     @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-                                                     @RequestParam(required = false) City city, @RequestParam(required = false) String score) {
-        List<MatchDto> filteredMatches = matchService.getFilteredMatches(startDate, endDate, city, score);
+    public ResponseEntity<?> getFilteredMatches(@RequestParam(required = false) LocalDate startDate, @RequestParam(required = false) LocalDate endDate, @RequestParam(required = false) City city,
+                                                @RequestParam(required = false) String score, @PageableDefault Pageable pageable) {
+        Page<MatchDto> filteredMatches = matchService.getFilteredMatches(startDate, endDate, city, score, pageable);
         if (filteredMatches.isEmpty()) {
             return new ResponseEntity<>("No matches found.", HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(filteredMatches, HttpStatus.OK);
     }
+
 }

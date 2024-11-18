@@ -4,6 +4,9 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.agency.course_work.dto.*;
 import org.agency.course_work.service.ContractService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,8 +34,12 @@ public class ContractController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ContractDto>> getAllContracts() {
-        return ResponseEntity.ok(contractService.getAllContracts());
+    public ResponseEntity<?> getAllContracts(@PageableDefault Pageable pageable) {
+        Page<ContractDto> contractDtos = contractService.getAllContracts(pageable);
+        if (contractDtos.isEmpty()) {
+            return new ResponseEntity<>("No contracts found.", HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(contractDtos, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
@@ -42,8 +49,8 @@ public class ContractController {
     }
 
     @GetMapping("/sort")
-    public ResponseEntity<Object> getSortedContracts(@RequestParam String sortBy, @RequestParam String order) {
-        List<ContractDto> sortedContracts = contractService.getSortedContracts(sortBy, order);
+    public ResponseEntity<?> getSortedContracts(@RequestParam String sortBy, @RequestParam String order, @PageableDefault Pageable pageable) {
+        Page<ContractDto> sortedContracts = contractService.getSortedContracts(sortBy, order, pageable);
         if (sortedContracts.isEmpty()) {
             return new ResponseEntity<>("No contracts found.", HttpStatus.NOT_FOUND);
         }
@@ -51,15 +58,15 @@ public class ContractController {
     }
 
     @GetMapping("/filter")
-    public ResponseEntity<Object> getFilteredContracts(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-                                                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-                                                       @RequestParam(required = false) BigDecimal minSalary, @RequestParam(required = false) BigDecimal maxSalary) {
-        List<ContractDto> filteredContracts = contractService.getFilteredContracts(startDate, endDate, minSalary, maxSalary);
+    public ResponseEntity<?> getFilteredContracts(@RequestParam(required = false) LocalDate startDate, @RequestParam(required = false) LocalDate endDate, @RequestParam(required = false) BigDecimal minSalary,
+                                                  @RequestParam(required = false) BigDecimal maxSalary, @PageableDefault Pageable pageable) {
+        Page<ContractDto> filteredContracts = contractService.getFilteredContracts(startDate, endDate, minSalary, maxSalary, pageable);
         if (filteredContracts.isEmpty()) {
             return new ResponseEntity<>("No contracts found.", HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(filteredContracts, HttpStatus.OK);
     }
+
 
 
 }

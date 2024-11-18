@@ -18,8 +18,14 @@ import org.agency.course_work.mapper.PlayerMapper;
 import org.agency.course_work.repository.AgentRepository;
 import org.agency.course_work.repository.ClubRepository;
 import org.agency.course_work.repository.PlayerRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.jpa.domain.Specification;
+
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -40,11 +46,10 @@ public class PlayerService {
     }
 
     @Transactional(readOnly = true)
-    public List<PlayerDto> getAllPlayers() {
-        return playerRepository.findAll().stream()
-                .map(playerMapper::toDto)
-                .toList();
+    public Page<PlayerDto> getAllPlayers(Pageable pageable) {
+        return playerRepository.findAll(pageable).map(playerMapper::toDto);
     }
+
 
     public PlayerDto createPlayer(PlayerCreationDto playerDto) {
         if (!agentRepository.existsById(playerDto.agentId())) {
@@ -67,7 +72,7 @@ public class PlayerService {
         Player player = playerRepository.findById(playerId).orElseThrow(() -> new PlayerNotFound("Player not found"));
         Agent agent = player.getAgent();
         return new PlayerAgentDto(
-                player.getId(), player.getCreatedAt(), player.getUpdatedAt(), player.getName(), player.getSurname(),
+                player.getId(), player.getCreatedAt(), player.getUpdatedAt(), player.getName()+" "+ player.getSurname(),
                 player.getAge(), player.getPosition(), player.getNationality(), player.getValue(),
                 agent != null ? agent.getId() : null, agent != null ? agent.getCreatedAt() : null,
                 agent != null ? agent.getUpdatedAt() : null, agent != null ? agent.getFirstName() : null,
@@ -76,16 +81,14 @@ public class PlayerService {
         );
     }
 
-    @Transactional(readOnly = true)
-    public List<PlayerDto> getPlayersByAgent(Long agentId) {
-        if (!agentRepository.existsById(agentId)) {
-            throw new AgentNotFound("Agent not found with ID: " + agentId);
-        }
-        List<Player> players = playerRepository.findAllByAgentId(agentId);
-        return players.stream()
-                .map(playerMapper::toDto)
-                .toList();
+@Transactional(readOnly = true)
+public Page<PlayerDto> getPlayersByAgent(Long agentId, Pageable pageable) {
+    if (!agentRepository.existsById(agentId)) {
+        throw new AgentNotFound("Agent not found with ID: " + agentId);
     }
+    Page<Player> players = playerRepository.findAllByAgentId(agentId, pageable);
+    return players.map(playerMapper::toDto);
+}
 
     public PlayerDto updatePlayer(Long id, PlayerDto playerDto) {
         Player player = playerRepository.findById(id)
@@ -111,90 +114,51 @@ public class PlayerService {
     }
 
     @Transactional(readOnly = true)
-    public List<PlayerDto> getSortedPlayers(String sortBy, String order) {
-        List<Player> players = playerRepository.findAll();
-
-        List<Player> sortedPlayers;
-        switch (sortBy) {
-            case "age":
-                sortedPlayers = players.stream()
-                        .sorted((p1, p2) -> order.equals("asc") ? Integer.compare(p1.getAge(), p2.getAge()) : Integer.compare(p2.getAge(), p1.getAge()))
-                        .toList();
-                break;
-            case "name":
-                sortedPlayers = players.stream()
-                        .sorted((p1, p2) -> order.equals("asc") ? p1.getName().compareTo(p2.getName()) : p2.getName().compareTo(p1.getName()))
-                        .toList();
-                break;
-            case "value":
-                sortedPlayers = players.stream()
-                        .sorted((p1, p2) -> order.equals("asc") ? p1.getValue().compareTo(p2.getValue()) : p2.getValue().compareTo(p1.getValue()))
-                        .toList();
-                break;
-            case "surname":
-                sortedPlayers = players.stream()
-                        .sorted((p1, p2) -> order.equals("asc") ? p1.getSurname().compareTo(p2.getSurname()) : p2.getSurname().compareTo(p1.getSurname()))
-                        .toList();
-                break;
-            case "nationality":
-                sortedPlayers = players.stream()
-                        .sorted((p1, p2) -> order.equals("asc") ? p1.getNationality().compareTo(p2.getNationality()) : p2.getNationality().compareTo(p1.getNationality()))
-                        .toList();
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported sorting parameter: " + sortBy);
-        }
-
-        return sortedPlayers.stream()
-                .map(player -> new PlayerDto(
-                        player.getId(), player.getCreatedAt(), player.getUpdatedAt(), player.getName(), player.getSurname(),
-                        player.getAge(), player.getPosition(), player.getNationality(), player.getValue()))
-                .toList();
+    public Page<PlayerDto> getSortedPlayers(String sortBy, String order, Pageable pageable) {
+        Sort.Direction direction = "asc".equalsIgnoreCase(order) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(direction, sortBy));
+        Page<Player> players = playerRepository.findAll(sortedPageable);
+        return players.map(player -> new PlayerDto(
+                player.getId(), player.getCreatedAt(), player.getUpdatedAt(), player.getName(), player.getSurname(),
+                player.getAge(), player.getPosition(), player.getNationality(), player.getValue()
+        ));
     }
 
-    @Transactional(readOnly = true)
-    public List<PlayerDto> getFilteredPlayers(Integer age, String name, String surname, String nationality, BigDecimal minValue, BigDecimal maxValue, PlayerPosition position) {
-        List<Player> players = playerRepository.findAll();
-
-        if (age != null) {
-            players = players.stream()
-                    .filter(player -> player.getAge() == age)
-                    .toList();
-        }
-        if (name != null && !name.isEmpty()) {
-            players = players.stream()
-                    .filter(player -> player.getName().equalsIgnoreCase(name))
-                    .toList();
-        }
-        if (surname != null && !surname.isEmpty()) {
-            players = players.stream()
-                    .filter(player -> player.getSurname().equalsIgnoreCase(surname))
-                    .toList();
-        }
-        if (nationality != null && !nationality.isEmpty()) {
-            players = players.stream()
-                    .filter(player -> player.getNationality().equalsIgnoreCase(nationality))
-                    .toList();
-        }
-        if (minValue != null) {
-            players = players.stream()
-                    .filter(player -> player.getValue() != null && player.getValue().compareTo(minValue) >= 0)
-                    .toList();
-        }
-        if (maxValue != null) {
-            players = players.stream()
-                    .filter(player -> player.getValue().compareTo(maxValue) <= 0)
-                    .toList();
-        }
-        if (position != null) {
-            players=players.stream()
-                    .filter(player -> player.getPosition().equals(position))
-                    .toList();
-        }
-        return players.stream()
-                .map(player -> new PlayerDto(
-                        player.getId(), player.getCreatedAt(), player.getUpdatedAt(), player.getName(), player.getSurname(),
-                        player.getAge(), player.getPosition(), player.getNationality(), player.getValue()))
-                .toList();
+@Transactional(readOnly = true)
+public Page<PlayerDto> getFilteredPlayers(Integer age, String name, String surname, String nationality, BigDecimal minValue, BigDecimal maxValue, PlayerPosition position, Pageable pageable) {
+    Specification<Player> specification = Specification.where(null);
+    if (age != null) {
+        specification = specification.and((root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("age"), age));
     }
+    if (name != null && !name.isEmpty()) {
+        specification = specification.and((root, query, criteriaBuilder) ->
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
+    }
+    if (surname != null && !surname.isEmpty()) {
+        specification = specification.and((root, query, criteriaBuilder) ->
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("surname")), "%" + surname.toLowerCase() + "%"));
+    }
+    if (nationality != null && !nationality.isEmpty()) {
+        specification = specification.and((root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(criteriaBuilder.lower(root.get("nationality")), nationality.toLowerCase()));
+    }
+    if (minValue != null) {
+        specification = specification.and((root, query, criteriaBuilder) ->
+                criteriaBuilder.greaterThanOrEqualTo(root.get("value"), minValue));
+    }
+    if (maxValue != null) {
+        specification = specification.and((root, query, criteriaBuilder) ->
+                criteriaBuilder.lessThanOrEqualTo(root.get("value"), maxValue));
+    }
+    if (position != null) {
+        specification = specification.and((root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("position"), position));
+    }
+    Page<Player> players = playerRepository.findAll(specification, pageable);
+    return players.map(player -> new PlayerDto(player.getId(), player.getCreatedAt(), player.getUpdatedAt(), player.getName(),
+            player.getSurname(), player.getAge(), player.getPosition(), player.getNationality(), player.getValue()
+    ));
+}
+
 }

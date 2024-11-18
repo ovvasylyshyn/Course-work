@@ -15,6 +15,11 @@ import org.agency.course_work.repository.AgentRepository;
 import org.agency.course_work.repository.ClubRepository;
 import org.agency.course_work.repository.ContractRepository;
 import org.agency.course_work.repository.PlayerRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,10 +64,8 @@ public class ContractService {
         return contractMapper.toDto(savedContract);
     }
 
-    public List<ContractDto> getAllContracts() {
-        return contractRepository.findAll().stream()
-                .map(contractMapper::toDto)
-                .toList();
+    public Page<ContractDto> getAllContracts(Pageable pageable) {
+        return contractRepository.findAll(pageable).map(contractMapper::toDto);
     }
 
     @Transactional
@@ -73,69 +76,38 @@ public class ContractService {
         return contractMapper.toDto(contractRepository.save(contract));
     }
 
-    public List<ContractDto> getSortedContracts(String sortBy, String order) {
-        List<Contract> contracts = contractRepository.findAll();
-        List<Contract> sortedContracts;
-        switch (sortBy) {
-            case "startDate":
-                sortedContracts = contracts.stream()
-                        .sorted((c1, c2) -> order.equalsIgnoreCase("asc") ?
-                                c1.getStartDate().compareTo(c2.getStartDate()) :
-                                c2.getStartDate().compareTo(c1.getStartDate()))
-                        .toList();
-                break;
-            case "endDate":
-                sortedContracts = contracts.stream()
-                        .sorted((c1, c2) -> order.equalsIgnoreCase("asc") ?
-                                c1.getEndDate().compareTo(c2.getEndDate()) :
-                                c2.getEndDate().compareTo(c1.getEndDate()))
-                        .toList();
-                break;
-            case "salary":
-                sortedContracts = contracts.stream()
-                        .sorted((c1, c2) -> order.equalsIgnoreCase("asc") ?
-                                c1.getSalary().compareTo(c2.getSalary()) :
-                                c2.getSalary().compareTo(c1.getSalary()))
-                        .toList();
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported sorting parameter: " + sortBy);
-        }
-        return sortedContracts.stream()
-                .map(contract -> new ContractDto(
-                        contract.getId(), contract.getCreatedAt(), contract.getUpdatedAt(),
-                        contract.getStartDate(), contract.getEndDate(), contract.getSalary()))
-                .toList();
+    public Page<ContractDto> getSortedContracts(String sortBy, String order, Pageable pageable) {
+        Sort sort = order.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        Page<Contract> contractsPage = contractRepository.findAll(sortedPageable);
+        return contractsPage.map(contract -> new ContractDto(contract.getId(), contract.getCreatedAt(), contract.getUpdatedAt(), contract.getStartDate(),
+                contract.getEndDate(), contract.getSalary()
+        ));
     }
 
-    public List<ContractDto> getFilteredContracts(LocalDate startDate, LocalDate endDate, BigDecimal minSalary, BigDecimal maxSalary) {
-        List<Contract> contracts = contractRepository.findAll();
+    public Page<ContractDto> getFilteredContracts(LocalDate startDate, LocalDate endDate, BigDecimal minSalary, BigDecimal maxSalary, Pageable pageable) {
+        Specification<Contract> specification = Specification.where(null);
         if (startDate != null) {
-            contracts = contracts.stream()
-                    .filter(contract -> contract.getStartDate() != null && !contract.getStartDate().isBefore(startDate))
-                    .toList();
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.greaterThanOrEqualTo(root.get("startDate"), startDate));
         }
         if (endDate != null) {
-            contracts = contracts.stream()
-                    .filter(contract -> contract.getEndDate() != null && !contract.getEndDate().isAfter(endDate))
-                    .toList();
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.lessThanOrEqualTo(root.get("endDate"), endDate));
         }
         if (minSalary != null) {
-            contracts = contracts.stream()
-                    .filter(contract -> contract.getSalary() != null && contract.getSalary().compareTo(minSalary) >= 0)
-                    .toList();
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.greaterThanOrEqualTo(root.get("salary"), minSalary));
         }
         if (maxSalary != null) {
-            contracts = contracts.stream()
-                    .filter(contract -> contract.getSalary() != null && contract.getSalary().compareTo(maxSalary) <= 0)
-                    .toList();
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.lessThanOrEqualTo(root.get("salary"), maxSalary));
         }
-        return contracts.stream()
-                .map(contract -> new ContractDto(
-                        contract.getId(), contract.getCreatedAt(), contract.getUpdatedAt(), contract.getStartDate(),
-                        contract.getEndDate(), contract.getSalary()))
-                .toList();
+        Page<Contract> contractsPage = contractRepository.findAll(specification, pageable);
+        return contractsPage.map(contract -> new ContractDto(contract.getId(), contract.getCreatedAt(),
+                contract.getUpdatedAt(), contract.getStartDate(), contract.getEndDate(), contract.getSalary()));
     }
+
 
 
 }

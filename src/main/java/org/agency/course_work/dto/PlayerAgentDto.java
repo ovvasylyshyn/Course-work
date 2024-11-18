@@ -12,5 +12,7 @@ import java.time.LocalDateTime;
  * DTO for {@link org.agency.course_work.entity.Player}
  */
 
-public record PlayerAgentDto(Long id, LocalDateTime createdAt, LocalDateTime updatedAt, String name, String surname, int age, PlayerPosition position, String nationality, BigDecimal value, Long agentId, LocalDateTime agentCreatedAt, LocalDateTime agentUpdatedAt, String agentFirstName, String agentLastName, String agentPhoneNumber, CommissionRate agentCommissionRate) implements Serializable {
+public record PlayerAgentDto(Long id, LocalDateTime createdAt, LocalDateTime updatedAt, String name,  int age, PlayerPosition position, String nationality, BigDecimal value, Long agentId, LocalDateTime agentCreatedAt, LocalDateTime agentUpdatedAt, String agentFirstName, String agentLastName, String agentPhoneNumber, CommissionRate agentCommissionRate) implements Serializable {
   }
+
+//String surname,
