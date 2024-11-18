@@ -55,16 +55,13 @@ public class MatchService {
         return matchRepository.findAll(pageable).map(matchMapper::toDto);
     }
 
-    public List<MathesWithClubsDto> getMatchesWithClubs() {
-        return matchRepository.findAll().stream()
-                .map(match -> new MathesWithClubsDto(
-                        match.getId(), match.getCreatedAt(), match.getUpdatedAt(), match.getDate(),
-                        match.getCity(), match.getScore(),
-                        match.getClubs().stream()
-                                .map(Club::getName)
-                                .toList()
-                ))
-                .toList();
+    public Page<MathesWithClubsDto> getMatchesWithClubs(Pageable pageable) {
+        Page<Match> matchesPage = matchRepository.findAll(pageable);
+        return matchesPage.map(match -> new MathesWithClubsDto(match.getId(), match.getCreatedAt(), match.getUpdatedAt(), match.getDate(),
+                match.getCity(), match.getScore(), match.getClubs().stream()
+                        .map(Club::getName)
+                        .toList()
+        ));
     }
 
     @Transactional

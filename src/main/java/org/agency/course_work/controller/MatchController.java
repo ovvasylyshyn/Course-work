@@ -42,11 +42,14 @@ private final MatchService matchService;
         return new ResponseEntity<>(matchDtos, HttpStatus.OK);
     }
 
-    @GetMapping("/matches")
-    public ResponseEntity<List<MathesWithClubsDto>> getAllMatchesWithClubs() {
-        List<MathesWithClubsDto> matches = matchService.getMatchesWithClubs();
-        return ResponseEntity.ok(matches);
+@GetMapping("/matches")
+public ResponseEntity<?> getMatchesWithClubs(@PageableDefault Pageable pageable) {
+    Page<MathesWithClubsDto> matchesWithClubs = matchService.getMatchesWithClubs(pageable);
+    if (matchesWithClubs.isEmpty()) {
+        return new ResponseEntity<>("No matches with clubs found.", HttpStatus.NOT_FOUND);
     }
+    return new ResponseEntity<>(matchesWithClubs, HttpStatus.OK);
+}
 
     @PutMapping("/{id}")
     public ResponseEntity<MatchDto> updateMatch(@PathVariable Long id, @RequestBody @Valid MatchDto matchDto) {
