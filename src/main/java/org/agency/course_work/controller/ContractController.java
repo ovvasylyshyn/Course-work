@@ -3,6 +3,8 @@ package org.agency.course_work.controller;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.agency.course_work.dto.*;
+import org.agency.course_work.entity.Contract;
+import org.agency.course_work.repository.ContractRepository;
 import org.agency.course_work.service.ContractService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +23,7 @@ import java.util.List;
 @RequestMapping("api/contracts")
 public class ContractController {
     private final ContractService contractService;
+    private final ContractRepository contractRepository;
 
     @GetMapping("{id}")
     public ResponseEntity<ContractDto>getContractById(@PathVariable("id") Long id){
@@ -67,6 +70,16 @@ public class ContractController {
         return new ResponseEntity<>(filteredContracts, HttpStatus.OK);
     }
 
-
+    @PostMapping("/{contractId}/send")
+    public ResponseEntity<String> sendContractAsPdf(@PathVariable Long contractId, @RequestParam String recipientEmail) {
+        try {
+            Contract contract = contractRepository.findById(contractId)
+                    .orElseThrow(() -> new RuntimeException("Contract with ID " + contractId + " not found."));
+            contractService.sendContractAsPdf(contract, recipientEmail);
+            return ResponseEntity.ok("Contract sent to " + recipientEmail + " successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to send contract: " + e.getMessage());
+        }
+    }
 
 }
