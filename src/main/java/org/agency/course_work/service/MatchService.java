@@ -31,7 +31,7 @@ public class MatchService {
     private final MatchMapper matchMapper;
     private final ClubRepository clubRepository;
 
-    @Cacheable(value = "matches",key = "#id")
+
     public MatchDto getMatchById(Long id) {
         Match match = matchRepository.findById(id).orElseThrow(()-> new MatchNotFound("Match not found"));
         return matchMapper.toDto(match);
@@ -52,12 +52,11 @@ public class MatchService {
             return matchMapper.toDto(savedMatch);
     }
 
-    @Cacheable(value = "matches")
+
     public Page<MatchDto> getAllMatches(Pageable pageable) {
         return matchRepository.findAll(pageable).map(matchMapper::toDto);
     }
 
-    @Cacheable(value = "matches")
     public Page<MathesWithClubsDto> getMatchesWithClubs(Pageable pageable) {
         Page<Match> matchesPage = matchRepository.findAll(pageable);
         return matchesPage.map(match -> new MathesWithClubsDto(match.getId(), match.getCreatedAt(), match.getUpdatedAt(), match.getDate(),

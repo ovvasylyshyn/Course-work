@@ -15,4 +15,3 @@ import java.time.LocalDateTime;
 public record PlayerAgentDto(Long id, LocalDateTime createdAt, LocalDateTime updatedAt, String name,  int age, PlayerPosition position, String nationality, BigDecimal value, Long agentId, LocalDateTime agentCreatedAt, LocalDateTime agentUpdatedAt, String agentFirstName, String agentLastName, String agentPhoneNumber, CommissionRate agentCommissionRate) implements Serializable {
   }
 
-//String surname,

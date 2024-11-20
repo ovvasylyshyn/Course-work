@@ -29,8 +29,8 @@ public class CacheConfig {
         return cacheManager;
     }
 
-    @Bean
-    public SimpleKeyGenerator keyGenerator() {
-        return new SimpleKeyGenerator();
-    }
+//    @Bean
+//    public SimpleKeyGenerator keyGenerator() {
+//        return new SimpleKeyGenerator();
+//    }
 }

@@ -51,7 +51,6 @@ public class ContractService {
     @Autowired
     private JavaMailSender javaMailSender;
 
-    @Cacheable(value = "contracts",key = "#id")
     public ContractDto getContractById(Long id) {
         Contract contract = contractRepository.findById(id).orElseThrow(() -> new ContractNotFound("Contract not found"));
         return contractMapper.toDto(contract);
@@ -79,7 +78,6 @@ public class ContractService {
         return contractMapper.toDto(savedContract);
     }
 
-    @Cacheable(value = "contracts")
     public Page<ContractDto> getAllContracts(Pageable pageable) {
         return contractRepository.findAll(pageable).map(contractMapper::toDto);
     }

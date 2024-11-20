@@ -23,25 +23,23 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Transactional
 public class ClubService {
-private final ClubRepository clubRepository;
-private final ClubMapper clubMapper;
+    private final ClubRepository clubRepository;
+    private final ClubMapper clubMapper;
 
-@Transactional(readOnly = true)
-@Cacheable(value = "clubs", key = "#id")
+    @Transactional(readOnly = true)
     public ClubDto getClubById(Long id) {
-    Club club = clubRepository.findById(id).orElseThrow(()-> new ClubNotFound("Club not found"));
-    return clubMapper.toDto(club);
-}
+        Club club = clubRepository.findById(id).orElseThrow(() -> new ClubNotFound("Club not found"));
+        return clubMapper.toDto(club);
+    }
 
-public ClubDto createClub(ClubCreationDto club) {
-    return clubMapper.toDto(clubRepository.save(clubMapper.toEntity(club)));
-}
+    public ClubDto createClub(ClubCreationDto club) {
+        return clubMapper.toDto(clubRepository.save(clubMapper.toEntity(club)));
+    }
 
-@Transactional(readOnly = true)
-@Cacheable(value = "clubs")
-public Page<ClubDto> getAllClubs(Pageable pageable) {
-    return clubRepository.findAll(pageable).map(clubMapper::toDto);
-}
+    @Transactional(readOnly = true)
+    public Page<ClubDto> getAllClubs(Pageable pageable) {
+        return clubRepository.findAll(pageable).map(clubMapper::toDto);
+    }
 
     public ClubDto updateClub(Long id, ClubDto clubDto) {
         Club club = clubRepository.findById(id)

@@ -7,6 +7,8 @@ import org.agency.course_work.dto.ClubCreationDto;
 import org.agency.course_work.dto.ClubDto;
 import org.agency.course_work.enums.Stadium;
 import org.agency.course_work.service.ClubService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -23,11 +25,13 @@ public class ClubController {
     private final ClubService clubService;
 
     @PostMapping
+    @CacheEvict(value = "clubs", allEntries = true)
     public ResponseEntity<ClubDto> createClub(@Valid @RequestBody ClubCreationDto clubCreationDto) {
         return new ResponseEntity(clubService.createClub(clubCreationDto), HttpStatus.CREATED);
     }
 
     @GetMapping
+    @Cacheable(value = "clubs")
     public ResponseEntity<?> getAllClubs(@PageableDefault Pageable pageable) {
         Page<ClubDto> clubDtos = clubService.getAllClubs(pageable);
         if (clubDtos.isEmpty()) {
@@ -37,11 +41,13 @@ public class ClubController {
     }
 
     @GetMapping("{id}")
+    @Cacheable(value = "clubs", key = "#id")
     public ResponseEntity<ClubDto> getClubById(@PathVariable("id") Long id) {
             return ResponseEntity.ok(clubService.getClubById(id));
     }
 
     @PutMapping("/{id}")
+    @CacheEvict(value = "agents", allEntries = true)
     public ResponseEntity<ClubDto> updateClub(@PathVariable Long id, @RequestBody @Valid ClubDto clubDto) {
         ClubDto updatedClub = clubService.updateClub(id, clubDto);
         return ResponseEntity.ok(updatedClub);

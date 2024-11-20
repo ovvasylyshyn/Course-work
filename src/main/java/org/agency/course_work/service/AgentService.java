@@ -29,20 +29,18 @@ public class AgentService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "agents", key = "#id")
+
     public AgentDto getAgentById(Long id) {
         Agent agent = agentRepository.findById(id)
                 .orElseThrow(() -> new AgentNotFound("Agent not found"));
         return agentMapper.toDto(agent);
     }
 
-
     public AgentDto createAgent(AgentCreationDto agent) {
         return agentMapper.toDto(agentRepository.save(agentMapper.toEntity(agent)));
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "agents")
     public Page<AgentDto> getAllAgents(Pageable pageable) {
         return agentRepository.findAll(pageable).map(agentMapper::toDto);
     }
@@ -54,37 +52,37 @@ public class AgentService {
         return agentMapper.toDto(agentRepository.save(agent));
     }
 
-@Transactional(readOnly = true)
-public Page<AgentDto> getSortedAgents(String sortBy, String order, Pageable pageable) {
-    Sort sort = order.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-    Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
-    Page<Agent> agentsPage = agentRepository.findAll(sortedPageable);
-    return agentsPage.map(agentMapper::toDto);
-}
+    @Transactional(readOnly = true)
+    public Page<AgentDto> getSortedAgents(String sortBy, String order, Pageable pageable) {
+        Sort sort = order.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        Page<Agent> agentsPage = agentRepository.findAll(sortedPageable);
+        return agentsPage.map(agentMapper::toDto);
+    }
 
-@Transactional(readOnly = true)
-public Page<AgentDto> getFilteredAgents(String firstName, String lastName, String phoneNumber, CommissionRate commissionRate, Pageable pageable) {
-    Specification<Agent> specification = Specification.where(null);
-    if (firstName != null && !firstName.isEmpty()) {
-        specification = specification.and((root, query, criteriaBuilder) ->
-                criteriaBuilder.like(criteriaBuilder.lower(root.get("firstName")), "%" + firstName.toLowerCase() + "%"));
+    @Transactional(readOnly = true)
+    public Page<AgentDto> getFilteredAgents(String firstName, String lastName, String phoneNumber, CommissionRate commissionRate, Pageable pageable) {
+        Specification<Agent> specification = Specification.where(null);
+        if (firstName != null && !firstName.isEmpty()) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("firstName")), "%" + firstName.toLowerCase() + "%"));
+        }
+        if (lastName != null && !lastName.isEmpty()) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("lastName")), "%" + lastName.toLowerCase() + "%"));
+        }
+        if (phoneNumber != null && !phoneNumber.isEmpty()) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(root.get("phoneNumber"), "%" + phoneNumber + "%"));
+        }
+        if (commissionRate != null) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("commissionRate"), commissionRate));
+        }
+        Page<Agent> agents = agentRepository.findAll(specification, pageable);
+        return agents.map(agent -> new AgentDto(agent.getId(), agent.getCreatedAt(), agent.getUpdatedAt(), agent.getFirstName(), agent.getLastName(), agent.getPhoneNumber(), agent.getCommissionRate()
+        ));
     }
-    if (lastName != null && !lastName.isEmpty()) {
-        specification = specification.and((root, query, criteriaBuilder) ->
-                criteriaBuilder.like(criteriaBuilder.lower(root.get("lastName")), "%" + lastName.toLowerCase() + "%"));
-    }
-    if (phoneNumber != null && !phoneNumber.isEmpty()) {
-        specification = specification.and((root, query, criteriaBuilder) ->
-                criteriaBuilder.like(root.get("phoneNumber"), "%" + phoneNumber + "%"));
-    }
-    if (commissionRate != null) {
-        specification = specification.and((root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("commissionRate"), commissionRate));
-    }
-    Page<Agent> agents = agentRepository.findAll(specification, pageable);
-    return agents.map(agent -> new AgentDto(agent.getId(), agent.getCreatedAt(), agent.getUpdatedAt(), agent.getFirstName(), agent.getLastName(), agent.getPhoneNumber(), agent.getCommissionRate()
-    ));
-}
 
 
 }

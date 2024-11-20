@@ -42,14 +42,12 @@ public class PlayerService {
     private final ClubRepository clubRepository;
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "players", key = "#id")
     public PlayerDto getPlayerById(Long id) {
         Player player = playerRepository.findById(id).orElseThrow(()->new PlayerNotFound("Player not found"));
         return playerMapper.toDto(player);
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "players")
     public Page<PlayerDto> getAllPlayers(Pageable pageable) {
         return playerRepository.findAll(pageable).map(playerMapper::toDto);
     }
@@ -72,7 +70,6 @@ public class PlayerService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "players", key = "#playerId")
     public PlayerAgentDto getPlayerWithAgent(Long playerId) {
         Player player = playerRepository.findById(playerId).orElseThrow(() -> new PlayerNotFound("Player not found"));
         Agent agent = player.getAgent();
@@ -87,7 +84,6 @@ public class PlayerService {
     }
 
 @Transactional(readOnly = true)
-@Cacheable(value = "players")
 public Page<PlayerDto> getPlayersByAgent(Long agentId, Pageable pageable) {
     if (!agentRepository.existsById(agentId)) {
         throw new AgentNotFound("Agent not found with ID: " + agentId);
@@ -104,7 +100,6 @@ public Page<PlayerDto> getPlayersByAgent(Long agentId, Pageable pageable) {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "players", key = "#playerId")
     public PlayerDetailsDto getPlayerDetails(Long playerId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new PlayerNotFound("Player with ID " + playerId + " not found."));

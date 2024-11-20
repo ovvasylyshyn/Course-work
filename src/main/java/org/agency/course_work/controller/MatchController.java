@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import org.agency.course_work.dto.*;
 import org.agency.course_work.enums.City;
 import org.agency.course_work.service.MatchService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -20,20 +22,23 @@ import java.util.List;
 @AllArgsConstructor
 @RequestMapping("api/matches")
 public class MatchController {
-private final MatchService matchService;
+    private final MatchService matchService;
 
     @GetMapping("{id}")
-    public ResponseEntity<MatchDto>getMatchById(@PathVariable("id") Long id){
+    @Cacheable(value = "matches", key = "#id")
+    public ResponseEntity<MatchDto> getMatchById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(matchService.getMatchById(id));
     }
 
     @PostMapping
+    @CacheEvict(value = "matches", allEntries = true)
     public ResponseEntity<MatchDto> createMatch(@RequestBody @Valid MatchCreationDto matchDto) {
         MatchDto savedMatch = matchService.createMatch(matchDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedMatch);
     }
 
     @GetMapping
+    @Cacheable(value = "matches")
     public ResponseEntity<?> getAllMatches(@PageableDefault Pageable pageable) {
         Page<MatchDto> matchDtos = matchService.getAllMatches(pageable);
         if (matchDtos.isEmpty()) {
@@ -42,16 +47,18 @@ private final MatchService matchService;
         return new ResponseEntity<>(matchDtos, HttpStatus.OK);
     }
 
-@GetMapping("/matches")
-public ResponseEntity<?> getMatchesWithClubs(@PageableDefault Pageable pageable) {
-    Page<MathesWithClubsDto> matchesWithClubs = matchService.getMatchesWithClubs(pageable);
-    if (matchesWithClubs.isEmpty()) {
-        return new ResponseEntity<>("No matches with clubs found.", HttpStatus.NOT_FOUND);
+    @GetMapping("/matches")
+    @Cacheable(value = "matches")
+    public ResponseEntity<?> getMatchesWithClubs(@PageableDefault Pageable pageable) {
+        Page<MathesWithClubsDto> matchesWithClubs = matchService.getMatchesWithClubs(pageable);
+        if (matchesWithClubs.isEmpty()) {
+            return new ResponseEntity<>("No matches with clubs found.", HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(matchesWithClubs, HttpStatus.OK);
     }
-    return new ResponseEntity<>(matchesWithClubs, HttpStatus.OK);
-}
 
     @PutMapping("/{id}")
+    @CacheEvict(value = {"matches", "agents", "players", "clubs"})
     public ResponseEntity<MatchDto> updateMatch(@PathVariable Long id, @RequestBody @Valid MatchDto matchDto) {
         MatchDto updatedMatch = matchService.updateMatch(id, matchDto);
         return ResponseEntity.ok(updatedMatch);
