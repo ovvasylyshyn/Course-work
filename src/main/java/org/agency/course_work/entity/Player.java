@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.agency.course_work.enums.PlayerPosition;
+import org.hibernate.annotations.Where;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -16,6 +17,7 @@ import java.util.*;
 @Getter
 @ToString
 //@AllArgsConstructor
+@Where(clause = "is_deleted = false")
 public class Player extends BaseEntity {
     private String name;
     private String surname;

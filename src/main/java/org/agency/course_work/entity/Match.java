@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.agency.course_work.enums.City;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ import java.util.Set;
 @Setter
 @Getter
 @ToString
+@Where(clause = "is_deleted = false")
 public class Match extends BaseEntity {
     private LocalDate date;
 
@@ -24,6 +26,6 @@ public class Match extends BaseEntity {
 
     private String score;
 
-    @ManyToMany(mappedBy = "matches")
+    @ManyToMany(mappedBy = "matches", cascade = CascadeType.REMOVE)
     private Set<Club> clubs = new HashSet<>();
 }

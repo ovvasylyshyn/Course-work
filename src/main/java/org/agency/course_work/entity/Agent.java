@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.agency.course_work.enums.CommissionRate;
+import org.hibernate.annotations.Where;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,6 +15,7 @@ import java.util.Set;
 @Setter
 @Getter
 @ToString
+@Where(clause = "is_deleted = false")
 public class Agent extends BaseEntity {
     @Column(name = "first_name")
     private String firstName;

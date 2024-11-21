@@ -3,8 +3,10 @@ package org.agency.course_work.service;
 import lombok.AllArgsConstructor;
 import org.agency.course_work.dto.ClubCreationDto;
 import org.agency.course_work.dto.ClubDto;
+import org.agency.course_work.entity.Agent;
 import org.agency.course_work.entity.Club;
 import org.agency.course_work.enums.Stadium;
+import org.agency.course_work.exception.AgentNotFound;
 import org.agency.course_work.exception.ClubNotFound;
 import org.agency.course_work.mapper.ClubMapper;
 import org.agency.course_work.repository.ClubRepository;
@@ -18,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 
 @Service
@@ -147,6 +151,35 @@ public class ClubService {
                     name, stadium, country, minBudget, maxBudget, e);
             throw e;
         }
+    }
+
+//    @Transactional
+//    public void deleteClubById(Long id) {
+//        logger.info("Deleting club with ID: {}", id);
+//        try {
+//            Club club = clubRepository.findById(id).orElseThrow(() -> {
+//                logger.warn("Club with ID: {} not found", id);
+//                return new ClubNotFound("Club not found");
+//            });
+//            clubRepository.delete(club);
+//            logger.info("Club with ID: {} deleted successfully", id);
+//        } catch (Exception e) {
+//            logger.error("Error deleting Club with ID: {}", id, e);
+//            throw e;
+//        }
+//    }
+
+
+    public void deleteClubById(Long id) {
+        Logger logger = LoggerFactory.getLogger(getClass());
+        logger.info("Attempting to mark Club with ID: {} as deleted", id);
+
+        Club club = clubRepository.findById(id)
+                .orElseThrow(() -> new ClubNotFound("Club with ID " + id + " not found."));
+        club.setDeleted(true);
+        clubRepository.save(club);
+
+        logger.info("Club with ID: {} marked as deleted successfully", id);
     }
 }
 

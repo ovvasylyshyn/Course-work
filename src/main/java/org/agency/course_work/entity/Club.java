@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.agency.course_work.enums.Stadium;
+import org.hibernate.annotations.Where;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -14,6 +15,7 @@ import java.util.*;
 @Setter
 @Getter
 @ToString
+@Where(clause = "is_deleted = false")
 public class Club extends BaseEntity {
     private String name;
 
@@ -26,7 +28,7 @@ public class Club extends BaseEntity {
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Contract> contracts = new HashSet<>();
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.REMOVE)
     @JoinTable(
             name = "club_match",
             joinColumns = @JoinColumn(name = "club_id"),

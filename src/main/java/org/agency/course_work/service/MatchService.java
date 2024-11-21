@@ -5,8 +5,10 @@ import org.agency.course_work.dto.MatchCreationDto;
 import org.agency.course_work.dto.MatchDto;
 import org.agency.course_work.dto.MathesWithClubsDto;
 import org.agency.course_work.entity.Club;
+import org.agency.course_work.entity.Contract;
 import org.agency.course_work.entity.Match;
 import org.agency.course_work.enums.City;
+import org.agency.course_work.exception.ContractNotFound;
 import org.agency.course_work.exception.MatchNotFound;
 import org.agency.course_work.mapper.MatchMapper;
 import org.agency.course_work.repository.ClubRepository;
@@ -24,6 +26,7 @@ import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -185,6 +188,42 @@ public class MatchService {
                     match.getDate(), match.getCity(), match.getScore()));
         } catch (Exception e) {
             logger.error("Error fetching filtered matches. Error: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    @Transactional
+//    public void deleteMatchById(Long id) {
+//        logger.info("Deleting Match with ID: {}", id);
+//        try {
+//            Match match = matchRepository.findById(id).orElseThrow(() -> {
+//                logger.warn("Match with ID: {} not found", id);
+//                return new MatchNotFound("Match not found");
+//            });
+//            matchRepository.delete(match);
+//            logger.info("Match with ID: {} deleted successfully", id);
+//        } catch (Exception e) {
+//            logger.error("Error deleting Match with ID: {}", id, e);
+//            throw e;
+//        }
+//    }
+
+    public void deleteMatchById(Long id) {
+        Logger logger = LoggerFactory.getLogger(getClass());
+        logger.info("Attempting to mark Match with ID: {} as deleted", id);
+
+        try {
+            Match match = matchRepository.findById(id).orElseThrow(() -> {
+                logger.warn("Match with ID: {} not found", id);
+                return new MatchNotFound(  "Match with ID " + id + " not found.");
+            });
+
+            match.setDeleted(true);
+            matchRepository.save(match);
+
+            logger.info("Match with ID: {} marked as deleted successfully", id);
+        } catch (Exception e) {
+            logger.error("Error occurred while marking Match with ID: {} as deleted", id, e);
             throw e;
         }
     }

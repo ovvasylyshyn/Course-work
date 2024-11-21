@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Where;
 
 import java.math.*;
 import java.time.LocalDate;
@@ -13,6 +14,7 @@ import java.time.LocalDate;
 @Setter
 @Getter
 @ToString
+@Where(clause = "is_deleted = false")
 public class Contract extends BaseEntity {
     private LocalDate startDate;
     private LocalDate endDate;

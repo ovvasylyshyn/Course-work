@@ -6,6 +6,8 @@ import org.agency.course_work.dto.AgentCreationDto;
 import org.agency.course_work.dto.AgentDto;
 import org.agency.course_work.exception.AgentNotFound;
 import org.agency.course_work.service.AgentService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 public class AgentController {
     private final AgentService agentService;
+    private static final Logger logger = LoggerFactory.getLogger(AgentService.class);
 
     @GetMapping("{id}")
     @Cacheable(value = "agents", key = "#id")
@@ -63,96 +66,30 @@ public class AgentController {
 
     @GetMapping("/filter")
     public ResponseEntity<?> getFilteredAgents(@RequestParam(required = false) String firstName, @RequestParam(required = false) String lastName, @RequestParam(required = false) String phoneNumber,
-                                               @RequestParam(required = false) CommissionRate commissionRate, @PageableDefault Pageable pageable) {
-        Page<AgentDto> filteredAgents = agentService.getFilteredAgents(firstName, lastName, phoneNumber, commissionRate, pageable);
+                                               @RequestParam(required = false) CommissionRate commissionRate,@RequestParam(required = false) Boolean isDeleted,  @PageableDefault Pageable pageable) {
+        Page<AgentDto> filteredAgents = agentService.getFilteredAgents(firstName, lastName, phoneNumber, commissionRate,isDeleted, pageable);
         if (filteredAgents.isEmpty()) {
             return new ResponseEntity<>("No agents found.", HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(filteredAgents, HttpStatus.OK);
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<Void> deleteAgentById(@PathVariable("id") Long id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteAgent(@PathVariable Long id) {
+        logger.info("Received request to delete Agent with ID: {}", id);
+
         try {
             agentService.deleteAgentById(id);
-            return ResponseEntity.noContent().build();
-        } catch (AgentNotFound ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            logger.info("Agent with ID: {} marked as deleted successfully", id);
+            return ResponseEntity.ok("Agent with ID " + id + " marked as deleted successfully.");
+        } catch (IllegalArgumentException e) {
+            logger.error("Error deleting Agent with ID: {}", id, e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("Unexpected error while deleting Agent with ID: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
         }
     }
 
-
-
 }
-
-//@RestController
-//@RequestMapping("/api/agents")
-//@RequiredArgsConstructor
-//@Tag(name = "Агенты", description = "Операции с агентами")
-//public class AgentController {
-//
-//    private final AgentService agentService;
-//
-//    @GetMapping("/{id}")
-//    @Operation(summary = "Получить агента по ID", description = "Доступен только авторизованным пользователям.")
-//    @Cacheable(value = "agents", key = "#id")
-//    public ResponseEntity<AgentDto> getAgentById(@PathVariable("id") Long id) {
-//        return ResponseEntity.ok(agentService.getAgentById(id));
-//    }
-//
-//    @PostMapping("/admin")
-//    @Operation(summary = "Создать нового агента", description = "Доступен только пользователям с ролью ADMIN.")
-//    @PreAuthorize("hasRole('ADMIN')")
-//    @CacheEvict(value = "agents", allEntries = true)
-//    public ResponseEntity<AgentDto> createAgent(@Valid @RequestBody AgentCreationDto agentCreationtDto) {
-//        return new ResponseEntity<>(agentService.createAgent(agentCreationtDto), HttpStatus.CREATED);
-//    }
-//
-//    @GetMapping
-//    @Operation(summary = "Получить список всех агентов", description = "Доступен только авторизованным пользователям.")
-//    @Cacheable(value = "agents")
-//    public ResponseEntity<?> getAllAgents(@PageableDefault Pageable pageable) {
-//        Page<AgentDto> agentDtos = agentService.getAllAgents(pageable);
-//        if (agentDtos.isEmpty()) {
-//            return new ResponseEntity<>("No agents found.", HttpStatus.NOT_FOUND);
-//        }
-//        return new ResponseEntity<>(agentDtos, HttpStatus.OK);
-//    }
-//
-//    @PutMapping("/{id}")
-//    @Operation(summary = "Обновить данные агента", description = "Доступен только пользователям с ролью ADMIN.")
-//    @PreAuthorize("hasRole('ADMIN')")
-//    @CacheEvict(value = "agents", allEntries = true)
-//    public ResponseEntity<AgentDto> updateAgent(@PathVariable Long id, @RequestBody @Valid AgentDto agentDto) {
-//        AgentDto updatedAgent = agentService.updateAgent(id, agentDto);
-//        return ResponseEntity.ok(updatedAgent);
-//    }
-//
-//    @GetMapping("/sort")
-//    @Operation(summary = "Получить отсортированный список агентов", description = "Доступен только авторизованным пользователям.")
-//    public ResponseEntity<?> getSortedAgents(@RequestParam String sortBy, @RequestParam String order, @PageableDefault Pageable pageable) {
-//        Page<AgentDto> sortedAgents = agentService.getSortedAgents(sortBy, order, pageable);
-//        if (sortedAgents.isEmpty()) {
-//            return new ResponseEntity<>("No agents found.", HttpStatus.NOT_FOUND);
-//        }
-//        return new ResponseEntity<>(sortedAgents, HttpStatus.OK);
-//    }
-//
-//    @GetMapping("/filter")
-//    @Operation(summary = "Получить фильтрованный список агентов", description = "Доступен только авторизованным пользователям.")
-//    public ResponseEntity<?> getFilteredAgents(
-//            @RequestParam(required = false) String firstName,
-//            @RequestParam(required = false) String lastName,
-//            @RequestParam(required = false) String phoneNumber,
-//            @RequestParam(required = false) CommissionRate commissionRate,
-//            @PageableDefault Pageable pageable) {
-//        Page<AgentDto> filteredAgents = agentService.getFilteredAgents(firstName, lastName, phoneNumber, commissionRate, pageable);
-//        if (filteredAgents.isEmpty()) {
-//            return new ResponseEntity<>("No agents found.", HttpStatus.NOT_FOUND);
-//        }
-//        return new ResponseEntity<>(filteredAgents, HttpStatus.OK);
-//    }
-//}
 

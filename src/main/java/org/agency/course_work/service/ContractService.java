@@ -310,4 +310,27 @@ public class ContractService {
                 contractId, period.getYears(), period.getMonths(), period.getDays());
         return new ContractTimeLeftDto(period.getYears(), period.getMonths(), period.getDays(), false);
     }
+
+    @Transactional
+    public void deleteContractById(Long id) {
+        Logger logger = LoggerFactory.getLogger(getClass());
+        logger.info("Attempting to mark Contract with ID: {} as deleted", id);
+
+        try {
+            Contract contract = contractRepository.findById(id)
+                    .orElseThrow(() -> {
+                        logger.warn("Contract with ID: {} not found", id);
+                        return new ClubNotFound("Contract with ID " + id + " not found.");
+                    });
+
+            contract.setDeleted(true);
+            contractRepository.save(contract);
+
+            logger.info("Contract with ID: {} marked as deleted successfully", id);
+        } catch (Exception e) {
+            logger.error("Error occurred while marking Contract with ID: {} as deleted", id, e);
+            throw e;
+        }
+    }
+
 }

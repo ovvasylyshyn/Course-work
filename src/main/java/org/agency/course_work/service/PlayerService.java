@@ -5,15 +5,9 @@ import org.agency.course_work.dto.PlayerCreationDto;
 import org.agency.course_work.dto.PlayerDetailsDto;
 import org.agency.course_work.dto.PlayerDto;
 import org.agency.course_work.dto.PlayerAgentDto;
-import org.agency.course_work.entity.Agent;
-import org.agency.course_work.entity.Club;
-import org.agency.course_work.entity.Contract;
-import org.agency.course_work.entity.Player;
+import org.agency.course_work.entity.*;
 import org.agency.course_work.enums.PlayerPosition;
-import org.agency.course_work.exception.AgentNotFound;
-import org.agency.course_work.exception.ClubNotFound;
-import org.agency.course_work.exception.ContractNotFound;
-import org.agency.course_work.exception.PlayerNotFound;
+import org.agency.course_work.exception.*;
 import org.agency.course_work.mapper.PlayerMapper;
 import org.agency.course_work.repository.AgentRepository;
 import org.agency.course_work.repository.ClubRepository;
@@ -255,6 +249,23 @@ public class PlayerService {
         } catch (Exception e) {
             logger.error("Error fetching filtered players with filters - Age: {}, Name: {}, Surname: {}, Nationality: {}, Min Value: {}, Max Value: {}, Position: {}. Error: {}",
                     age, name, surname, nationality, minValue, maxValue, position, e.getMessage());
+            throw e;
+        }
+    }
+
+    @Transactional
+    public void deletePlayerById(Long id) {
+        logger.info("Attempting to mark Player with ID: {} as deleted", id);
+        try {
+            Player player = playerRepository.findById(id).orElseThrow(() -> {
+                logger.warn("Player with ID: {} not found", id);
+                return new PlayerNotFound("Player with ID " + id + " not found.");
+            });
+            player.setDeleted(true);
+            playerRepository.save(player);
+            logger.info("Player with ID: {} marked as deleted successfully", id);
+        } catch (Exception e) {
+            logger.error("Error occurred while marking Player with ID: {} as deleted", id, e);
             throw e;
         }
     }

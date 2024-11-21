@@ -108,7 +108,7 @@ public class AgentService {
     }
 
     @Transactional(readOnly = true)
-    public Page<AgentDto> getFilteredAgents(String firstName, String lastName, String phoneNumber, CommissionRate commissionRate, Pageable pageable) {
+    public Page<AgentDto> getFilteredAgents(String firstName, String lastName, String phoneNumber, CommissionRate commissionRate, Boolean isDeleted, Pageable pageable) {
         logger.info("Fetching filtered agents: firstName={}, lastName={}, phoneNumber={}, commissionRate={}",
                 firstName, lastName, phoneNumber, commissionRate);
         try {
@@ -147,19 +147,15 @@ public class AgentService {
 
     @Transactional
     public void deleteAgentById(Long id) {
-        logger.info("Deleting agent with ID: {}", id);
-        try {
-            Agent agent = agentRepository.findById(id).orElseThrow(() -> {
-                        logger.warn("Agent with ID: {} not found", id);
-                        return new AgentNotFound("Agent not found");
-                    });
-            agentRepository.delete(agent);
-            logger.info("Agent with ID: {} deleted successfully", id);
-        } catch (Exception e) {
-            logger.error("Error deleting agent with ID: {}", id, e);
-            throw e;
-        }
-    }
+        Logger logger = LoggerFactory.getLogger(getClass());
+        logger.info("Attempting to mark Agent with ID: {} as deleted", id);
 
+        Agent agent = agentRepository.findById(id)
+                .orElseThrow(() -> new AgentNotFound("Agent with ID " + id + " not found."));
+        agent.setDeleted(true);
+        agentRepository.save(agent);
+
+        logger.info("Agent with ID: {} marked as deleted successfully", id);
+    }
 
 }
