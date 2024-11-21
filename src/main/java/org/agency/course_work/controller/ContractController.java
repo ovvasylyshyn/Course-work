@@ -87,4 +87,12 @@ public class ContractController {
         }
     }
 
+     @GetMapping("/{id}/time-left")
+     @Cacheable(value = "contracts",key = "#id")
+        public ResponseEntity<ContractTimeLeftDto> getTimeLeftUntilContractEnd(@PathVariable Long id) {
+            ContractTimeLeftDto timeLeft = contractService.getTimeLeftUntilContractEnd(id);
+            return ResponseEntity.ok(timeLeft);
+        }
+
+
 }
