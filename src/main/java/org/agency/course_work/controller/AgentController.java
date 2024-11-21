@@ -1,5 +1,10 @@
 package org.agency.course_work.controller;
 
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.agency.course_work.dto.AgentCreationDto;
@@ -22,22 +27,53 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("api/agents")
 @AllArgsConstructor
+
 public class AgentController {
     private final AgentService agentService;
     private static final Logger logger = LoggerFactory.getLogger(AgentService.class);
 
+    @Operation(
+            summary = "Get agent by ID",
+            description = "Fetches agent details based on provided ID",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successfully fetched agent",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = AgentDto.class))),
+                    @ApiResponse(responseCode = "404", description = "Agent not found")
+            }
+    )
     @GetMapping("{id}")
     @Cacheable(value = "agents", key = "#id")
     public ResponseEntity<AgentDto> getAgentById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(agentService.getAgentById(id));
     }
 
+    @Operation(
+            summary = "Create a new agent",
+            description = "Creates a new agent and stores it in the database",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Agent created successfully",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = AgentDto.class))),
+                    @ApiResponse(responseCode = "400", description = "Invalid agent data")
+            }
+    )
     @PostMapping
     @CacheEvict(value = "agents", allEntries = true)
     public ResponseEntity<AgentDto> createAgent(@Valid @RequestBody AgentCreationDto agentCreationtDto) {
-        return new ResponseEntity(agentService.createAgent(agentCreationtDto), HttpStatus.CREATED);
+        return new ResponseEntity<>(agentService.createAgent(agentCreationtDto), HttpStatus.CREATED);
     }
 
+    @Operation(
+            summary = "Get all agents",
+            description = "Fetches all agents with pagination support",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successfully fetched agents",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Page.class))),
+                    @ApiResponse(responseCode = "404", description = "No agents found")
+            }
+    )
     @GetMapping
     @Cacheable(value = "agents")
     public ResponseEntity<?> getAllAgents(@PageableDefault Pageable pageable) {
@@ -48,6 +84,16 @@ public class AgentController {
         return new ResponseEntity<>(agentDtos, HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Update agent details",
+            description = "Updates an existing agent's details by their ID",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Agent updated successfully",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = AgentDto.class))),
+                    @ApiResponse(responseCode = "404", description = "Agent not found")
+            }
+    )
     @PutMapping("/{id}")
     @CacheEvict(value = "agents", allEntries = true)
     public ResponseEntity<AgentDto> updateAgent(@PathVariable Long id, @RequestBody @Valid AgentDto agentDto) {
@@ -55,6 +101,16 @@ public class AgentController {
         return ResponseEntity.ok(updatedAgent);
     }
 
+    @Operation(
+            summary = "Get sorted agents",
+            description = "Fetches all agents sorted by specified field and order",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successfully fetched sorted agents",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Page.class))),
+                    @ApiResponse(responseCode = "404", description = "No agents found")
+            }
+    )
     @GetMapping("/sort")
     public ResponseEntity<?> getSortedAgents(@RequestParam String sortBy, @RequestParam String order, @PageableDefault Pageable pageable) {
         Page<AgentDto> sortedAgents = agentService.getSortedAgents(sortBy, order, pageable);
@@ -64,20 +120,43 @@ public class AgentController {
         return new ResponseEntity<>(sortedAgents, HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Get filtered agents",
+            description = "Fetches agents based on specified filters",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successfully fetched filtered agents",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Page.class))),
+                    @ApiResponse(responseCode = "404", description = "No agents found")
+            }
+    )
     @GetMapping("/filter")
-    public ResponseEntity<?> getFilteredAgents(@RequestParam(required = false) String firstName, @RequestParam(required = false) String lastName, @RequestParam(required = false) String phoneNumber,
-                                               @RequestParam(required = false) CommissionRate commissionRate,@RequestParam(required = false) Boolean isDeleted,  @PageableDefault Pageable pageable) {
-        Page<AgentDto> filteredAgents = agentService.getFilteredAgents(firstName, lastName, phoneNumber, commissionRate,isDeleted, pageable);
+    public ResponseEntity<?> getFilteredAgents(
+            @RequestParam(required = false) String firstName,
+            @RequestParam(required = false) String lastName,
+            @RequestParam(required = false) String phoneNumber,
+            @RequestParam(required = false) CommissionRate commissionRate,
+            @RequestParam(required = false) Boolean isDeleted,
+            @PageableDefault Pageable pageable) {
+        Page<AgentDto> filteredAgents = agentService.getFilteredAgents(firstName, lastName, phoneNumber, commissionRate, isDeleted, pageable);
         if (filteredAgents.isEmpty()) {
             return new ResponseEntity<>("No agents found.", HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(filteredAgents, HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Delete agent by ID",
+            description = "Marks an agent as deleted by their ID",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Agent successfully marked as deleted"),
+                    @ApiResponse(responseCode = "404", description = "Agent not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteAgent(@PathVariable Long id) {
         logger.info("Received request to delete Agent with ID: {}", id);
-
         try {
             agentService.deleteAgentById(id);
             logger.info("Agent with ID: {} marked as deleted successfully", id);

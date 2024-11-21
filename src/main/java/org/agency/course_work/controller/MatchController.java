@@ -1,5 +1,8 @@
 package org.agency.course_work.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.agency.course_work.dto.*;
@@ -21,21 +24,26 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("api/matches")
+@Tag(name = "Match", description = "Operations related to matches")
 public class MatchController {
     private final MatchService matchService;
     private static final Logger logger = LoggerFactory.getLogger(AgentService.class);
 
+    @Operation(summary = "Get match by ID", description = "Returns the details of a match by its ID")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved match")
+    @ApiResponse(responseCode = "404", description = "Match not found")
     @GetMapping("{id}")
     @Cacheable(value = "matches", key = "#id")
     public ResponseEntity<MatchDto> getMatchById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(matchService.getMatchById(id));
     }
 
+    @Operation(summary = "Create a new match", description = "Creates a new match and returns its details")
+    @ApiResponse(responseCode = "201", description = "Match created successfully")
     @PostMapping
     @CacheEvict(value = "matches", allEntries = true)
     public ResponseEntity<MatchDto> createMatch(@RequestBody @Valid MatchCreationDto matchDto) {
@@ -43,6 +51,9 @@ public class MatchController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedMatch);
     }
 
+    @Operation(summary = "Get all matches", description = "Returns a paginated list of all matches")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved list of matches")
+    @ApiResponse(responseCode = "404", description = "No matches found")
     @GetMapping
     @Cacheable(value = "matches")
     public ResponseEntity<?> getAllMatches(@PageableDefault Pageable pageable) {
@@ -53,6 +64,9 @@ public class MatchController {
         return new ResponseEntity<>(matchDtos, HttpStatus.OK);
     }
 
+    @Operation(summary = "Get matches with clubs", description = "Returns a paginated list of matches with club information")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved list of matches with clubs")
+    @ApiResponse(responseCode = "404", description = "No matches with clubs found")
     @GetMapping("/matches")
     @Cacheable(value = "matches")
     public ResponseEntity<?> getMatchesWithClubs(@PageableDefault Pageable pageable) {
@@ -63,6 +77,9 @@ public class MatchController {
         return new ResponseEntity<>(matchesWithClubs, HttpStatus.OK);
     }
 
+    @Operation(summary = "Update match by ID", description = "Updates the details of a match by its ID")
+    @ApiResponse(responseCode = "200", description = "Match updated successfully")
+    @ApiResponse(responseCode = "404", description = "Match not found")
     @PutMapping("/{id}")
     @CacheEvict(value = {"matches", "agents", "players", "clubs"})
     public ResponseEntity<MatchDto> updateMatch(@PathVariable Long id, @RequestBody @Valid MatchDto matchDto) {
@@ -70,6 +87,9 @@ public class MatchController {
         return ResponseEntity.ok(updatedMatch);
     }
 
+    @Operation(summary = "Get sorted list of matches", description = "Returns a sorted list of matches based on the provided sorting parameters")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved sorted matches")
+    @ApiResponse(responseCode = "404", description = "No matches found")
     @GetMapping("/sort")
     public ResponseEntity<?> getSortedMatches(@RequestParam String sortBy, @RequestParam String order, @PageableDefault Pageable pageable) {
         Page<MatchDto> sortedMatches = matchService.getSortedMatches(sortBy, order, pageable);
@@ -79,6 +99,9 @@ public class MatchController {
         return new ResponseEntity<>(sortedMatches, HttpStatus.OK);
     }
 
+    @Operation(summary = "Get filtered list of matches", description = "Returns a filtered list of matches based on the provided parameters")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved filtered matches")
+    @ApiResponse(responseCode = "404", description = "No matches found")
     @GetMapping("/filter")
     public ResponseEntity<?> getFilteredMatches(@RequestParam(required = false) LocalDate startDate, @RequestParam(required = false) LocalDate endDate, @RequestParam(required = false) City city,
                                                 @RequestParam(required = false) String score, @PageableDefault Pageable pageable) {
@@ -89,6 +112,9 @@ public class MatchController {
         return new ResponseEntity<>(filteredMatches, HttpStatus.OK);
     }
 
+    @Operation(summary = "Delete match by ID", description = "Marks a match as deleted by its ID")
+    @ApiResponse(responseCode = "200", description = "Match marked as deleted successfully")
+    @ApiResponse(responseCode = "404", description = "Match not found")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteMatch(@PathVariable Long id) {
         logger.info("Received request to mark Match with ID: {} as deleted", id);
@@ -105,5 +131,5 @@ public class MatchController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
         }
     }
-
 }
+
