@@ -131,6 +131,7 @@ public class ContractController {
     @ApiResponse(responseCode = "200", description = "Contract deleted successfully")
     @ApiResponse(responseCode = "404", description = "Contract not found")
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "contracts", allEntries = true)
     public ResponseEntity<String> deleteContract(@PathVariable Long id) {
         logger.info("Received request to mark Contract with ID: {} as deleted", id);
 

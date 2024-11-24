@@ -146,6 +146,7 @@ public class PlayerController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @DeleteMapping("/{id}")
+    @CacheEvict(value = {"agents", "clubs", "players"})
     public ResponseEntity<String> deletePlayer(@Parameter(description = "ID of the player to be deleted") @PathVariable Long id) {
         logger.info("Received request to mark Player with ID: {} as deleted", id);
         try {

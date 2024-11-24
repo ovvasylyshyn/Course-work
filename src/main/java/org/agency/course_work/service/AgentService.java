@@ -149,9 +149,7 @@ public class AgentService {
     public void deleteAgentById(Long id) {
         Logger logger = LoggerFactory.getLogger(getClass());
         logger.info("Attempting to mark Agent with ID: {} as deleted", id);
-
-        Agent agent = agentRepository.findById(id)
-                .orElseThrow(() -> new AgentNotFound("Agent with ID " + id + " not found."));
+        Agent agent = agentRepository.findById(id).orElseThrow(() -> new AgentNotFound("Agent with ID " + id + " not found."));
         agent.setDeleted(true);
         agentRepository.save(agent);
 

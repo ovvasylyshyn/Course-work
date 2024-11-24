@@ -11,6 +11,7 @@ import org.agency.course_work.dto.AgentCreationDto;
 import org.agency.course_work.dto.AgentDto;
 import org.agency.course_work.exception.AgentNotFound;
 import org.agency.course_work.service.AgentService;
+import org.agency.course_work.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
@@ -21,6 +22,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.agency.course_work.enums.CommissionRate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -31,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 public class AgentController {
     private final AgentService agentService;
     private static final Logger logger = LoggerFactory.getLogger(AgentService.class);
+    private final UserService service;
 
     @Operation(
             summary = "Get agent by ID",
@@ -155,6 +158,7 @@ public class AgentController {
             }
     )
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "agents", allEntries = true)
     public ResponseEntity<String> deleteAgent(@PathVariable Long id) {
         logger.info("Received request to delete Agent with ID: {}", id);
         try {
@@ -169,6 +173,19 @@ public class AgentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
         }
     }
+
+//    @GetMapping("/admin")
+//    @Operation(summary = "Доступен только авторизованным пользователям с ролью ADMIN")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public String exampleAdmin() {
+//        return "Hello, admin!";
+//    }
+//
+//    @GetMapping("/get-admin")
+//    @Operation(summary = "Получить роль ADMIN (для демонстрации)")
+//    public void getAdmin() {
+//        service.getAdmin();
+//    }
 
 }
 

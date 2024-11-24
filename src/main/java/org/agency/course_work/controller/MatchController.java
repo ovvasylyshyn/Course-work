@@ -116,6 +116,7 @@ public class MatchController {
     @ApiResponse(responseCode = "200", description = "Match marked as deleted successfully")
     @ApiResponse(responseCode = "404", description = "Match not found")
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "matches", allEntries = true)
     public ResponseEntity<String> deleteMatch(@PathVariable Long id) {
         logger.info("Received request to mark Match with ID: {} as deleted", id);
 

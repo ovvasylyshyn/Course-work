@@ -107,6 +107,7 @@ public class ClubController {
     @ApiResponse(responseCode = "200", description = "Club deleted successfully")
     @ApiResponse(responseCode = "404", description = "Club not found")
     @DeleteMapping("/{id}")
+    @CacheEvict(value = "clubs", allEntries = true)
     public ResponseEntity<String> deleteClubById(@PathVariable("id") Long id) {
         logger.info("Received request to delete Club with ID: {}", id);
 
