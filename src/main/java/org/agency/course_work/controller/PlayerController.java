@@ -24,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -53,6 +54,7 @@ public class PlayerController {
     })
     @PostMapping("/create")
     @CacheEvict(value = {"agents", "clubs", "players"})
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PlayerDto> createPlayer(@Valid @RequestBody PlayerCreationDto playerDto) {
         PlayerDto createdPlayer = playerService.createPlayer(playerDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPlayer);
@@ -98,6 +100,7 @@ public class PlayerController {
     })
     @PutMapping("/{id}")
     @CacheEvict(value = {"agents", "clubs", "players"})
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PlayerDto> updatePlayer(@Parameter(description = "ID of the player to be updated") @PathVariable Long id, @RequestBody @Valid PlayerDto playerDto) {
         PlayerDto updatedPlayer = playerService.updatePlayer(id, playerDto);
         return ResponseEntity.ok(updatedPlayer);
@@ -147,6 +150,7 @@ public class PlayerController {
     })
     @DeleteMapping("/{id}")
     @CacheEvict(value = {"agents", "clubs", "players"})
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deletePlayer(@Parameter(description = "ID of the player to be deleted") @PathVariable Long id) {
         logger.info("Received request to mark Player with ID: {} as deleted", id);
         try {

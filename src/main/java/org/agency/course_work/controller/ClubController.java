@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -38,6 +39,7 @@ public class ClubController {
     @ApiResponse(responseCode = "201", description = "Club created successfully")
     @PostMapping
     @CacheEvict(value = "clubs", allEntries = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ClubDto> createClub(@Valid @RequestBody ClubCreationDto clubCreationDto) {
         return new ResponseEntity<>(clubService.createClub(clubCreationDto), HttpStatus.CREATED);
     }
@@ -69,6 +71,7 @@ public class ClubController {
     @ApiResponse(responseCode = "404", description = "Club not found")
     @PutMapping("/{id}")
     @CacheEvict(value = "clubs", allEntries = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ClubDto> updateClub(@PathVariable Long id, @RequestBody @Valid ClubDto clubDto) {
         ClubDto updatedClub = clubService.updateClub(id, clubDto);
         return ResponseEntity.ok(updatedClub);
@@ -108,6 +111,7 @@ public class ClubController {
     @ApiResponse(responseCode = "404", description = "Club not found")
     @DeleteMapping("/{id}")
     @CacheEvict(value = "clubs", allEntries = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteClubById(@PathVariable("id") Long id) {
         logger.info("Received request to delete Club with ID: {}", id);
 

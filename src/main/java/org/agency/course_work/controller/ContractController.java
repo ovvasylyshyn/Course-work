@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -48,6 +49,7 @@ public class ContractController {
     @ApiResponse(responseCode = "201", description = "Contract created successfully")
     @PostMapping
     @CacheEvict(value = "contracts", allEntries = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ContractDto> createContract(@Valid @RequestBody ContractCreationDto contractDto) {
         ContractDto createdContract = contractService.createContract(contractDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdContract);
@@ -71,6 +73,7 @@ public class ContractController {
     @ApiResponse(responseCode = "404", description = "Contract not found")
     @PutMapping("/{id}")
     @CacheEvict(value = "contracts", allEntries = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ContractDto> updateContract(@PathVariable Long id, @RequestBody @Valid ContractDto contractDto) {
         ContractDto updatedContract = contractService.updateContract(id, contractDto);
         return ResponseEntity.ok(updatedContract);
@@ -132,6 +135,7 @@ public class ContractController {
     @ApiResponse(responseCode = "404", description = "Contract not found")
     @DeleteMapping("/{id}")
     @CacheEvict(value = "contracts", allEntries = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteContract(@PathVariable Long id) {
         logger.info("Received request to mark Contract with ID: {} as deleted", id);
 

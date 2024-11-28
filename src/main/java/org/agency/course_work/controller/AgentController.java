@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.agency.course_work.dto.AgentCreationDto;
@@ -38,6 +39,7 @@ public class AgentController {
     @Operation(
             summary = "Get agent by ID",
             description = "Fetches agent details based on provided ID",
+            security = @SecurityRequirement(name = "BearerAuth"),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Successfully fetched agent",
                             content = @Content(mediaType = "application/json",
@@ -54,6 +56,7 @@ public class AgentController {
     @Operation(
             summary = "Create a new agent",
             description = "Creates a new agent and stores it in the database",
+            security = @SecurityRequirement(name = "BearerAuth"),
             responses = {
                     @ApiResponse(responseCode = "201", description = "Agent created successfully",
                             content = @Content(mediaType = "application/json",
@@ -63,6 +66,7 @@ public class AgentController {
     )
     @PostMapping
     @CacheEvict(value = "agents", allEntries = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AgentDto> createAgent(@Valid @RequestBody AgentCreationDto agentCreationtDto) {
         return new ResponseEntity<>(agentService.createAgent(agentCreationtDto), HttpStatus.CREATED);
     }
@@ -70,6 +74,7 @@ public class AgentController {
     @Operation(
             summary = "Get all agents",
             description = "Fetches all agents with pagination support",
+            security = @SecurityRequirement(name = "BearerAuth"),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Successfully fetched agents",
                             content = @Content(mediaType = "application/json",
@@ -90,6 +95,7 @@ public class AgentController {
     @Operation(
             summary = "Update agent details",
             description = "Updates an existing agent's details by their ID",
+            security = @SecurityRequirement(name = "BearerAuth"),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Agent updated successfully",
                             content = @Content(mediaType = "application/json",
@@ -99,6 +105,7 @@ public class AgentController {
     )
     @PutMapping("/{id}")
     @CacheEvict(value = "agents", allEntries = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AgentDto> updateAgent(@PathVariable Long id, @RequestBody @Valid AgentDto agentDto) {
         AgentDto updatedAgent = agentService.updateAgent(id, agentDto);
         return ResponseEntity.ok(updatedAgent);
@@ -107,6 +114,7 @@ public class AgentController {
     @Operation(
             summary = "Get sorted agents",
             description = "Fetches all agents sorted by specified field and order",
+            security = @SecurityRequirement(name = "BearerAuth"),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Successfully fetched sorted agents",
                             content = @Content(mediaType = "application/json",
@@ -126,6 +134,7 @@ public class AgentController {
     @Operation(
             summary = "Get filtered agents",
             description = "Fetches agents based on specified filters",
+            security = @SecurityRequirement(name = "BearerAuth"),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Successfully fetched filtered agents",
                             content = @Content(mediaType = "application/json",
@@ -151,6 +160,7 @@ public class AgentController {
     @Operation(
             summary = "Delete agent by ID",
             description = "Marks an agent as deleted by their ID",
+            security = @SecurityRequirement(name = "BearerAuth"),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Agent successfully marked as deleted"),
                     @ApiResponse(responseCode = "404", description = "Agent not found"),
@@ -159,6 +169,7 @@ public class AgentController {
     )
     @DeleteMapping("/{id}")
     @CacheEvict(value = "agents", allEntries = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteAgent(@PathVariable Long id) {
         logger.info("Received request to delete Agent with ID: {}", id);
         try {

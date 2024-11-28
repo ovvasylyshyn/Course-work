@@ -21,6 +21,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -46,6 +47,7 @@ public class MatchController {
     @ApiResponse(responseCode = "201", description = "Match created successfully")
     @PostMapping
     @CacheEvict(value = "matches", allEntries = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MatchDto> createMatch(@RequestBody @Valid MatchCreationDto matchDto) {
         MatchDto savedMatch = matchService.createMatch(matchDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedMatch);
@@ -82,6 +84,7 @@ public class MatchController {
     @ApiResponse(responseCode = "404", description = "Match not found")
     @PutMapping("/{id}")
     @CacheEvict(value = {"matches", "agents", "players", "clubs"})
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MatchDto> updateMatch(@PathVariable Long id, @RequestBody @Valid MatchDto matchDto) {
         MatchDto updatedMatch = matchService.updateMatch(id, matchDto);
         return ResponseEntity.ok(updatedMatch);
@@ -117,6 +120,7 @@ public class MatchController {
     @ApiResponse(responseCode = "404", description = "Match not found")
     @DeleteMapping("/{id}")
     @CacheEvict(value = "matches", allEntries = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteMatch(@PathVariable Long id) {
         logger.info("Received request to mark Match with ID: {} as deleted", id);
 
