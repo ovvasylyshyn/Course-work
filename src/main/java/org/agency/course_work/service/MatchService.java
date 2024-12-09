@@ -5,17 +5,14 @@ import org.agency.course_work.dto.MatchCreationDto;
 import org.agency.course_work.dto.MatchDto;
 import org.agency.course_work.dto.MathesWithClubsDto;
 import org.agency.course_work.entity.Club;
-import org.agency.course_work.entity.Contract;
 import org.agency.course_work.entity.Match;
 import org.agency.course_work.enums.City;
-import org.agency.course_work.exception.ContractNotFound;
 import org.agency.course_work.exception.MatchNotFound;
 import org.agency.course_work.mapper.MatchMapper;
 import org.agency.course_work.repository.ClubRepository;
 import org.agency.course_work.repository.MatchRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -57,25 +54,18 @@ public class MatchService {
     public MatchDto createMatch(MatchCreationDto match) {
         logger.info("Creating match with details: {}", match);
         try {
-            // Mapping DTO to Entity
             Match matchCreated = matchMapper.toEntity(match);
             logger.debug("Mapped match creation DTO to entity: {}", matchCreated);
-
-            // Fetching clubs for the match
             List<Club> clubs = clubRepository.findAllById(match.clubIds());
             if (clubs.size() != match.clubIds().size()) {
                 logger.error("One or more Club IDs are invalid: {}", match.clubIds());
                 throw new IllegalArgumentException("One or more Club IDs are invalid.");
             }
-
-            // Associating clubs with the match
             for (Club club : clubs) {
                 logger.debug("Associating match with club: {}", club.getName());
                 club.getMatches().add(matchCreated);
                 matchCreated.getClubs().add(club);
             }
-
-            // Saving the match to the database
             Match savedMatch = matchRepository.save(matchCreated);
             logger.info("Match created successfully with ID: {}", savedMatch.getId());
             return matchMapper.toDto(savedMatch);
@@ -193,21 +183,6 @@ public class MatchService {
     }
 
     @Transactional
-//    public void deleteMatchById(Long id) {
-//        logger.info("Deleting Match with ID: {}", id);
-//        try {
-//            Match match = matchRepository.findById(id).orElseThrow(() -> {
-//                logger.warn("Match with ID: {} not found", id);
-//                return new MatchNotFound("Match not found");
-//            });
-//            matchRepository.delete(match);
-//            logger.info("Match with ID: {} deleted successfully", id);
-//        } catch (Exception e) {
-//            logger.error("Error deleting Match with ID: {}", id, e);
-//            throw e;
-//        }
-//    }
-
     public void deleteMatchById(Long id) {
         Logger logger = LoggerFactory.getLogger(getClass());
         logger.info("Attempting to mark Match with ID: {} as deleted", id);

@@ -12,10 +12,8 @@ import org.agency.course_work.mapper.PlayerMapper;
 import org.agency.course_work.repository.AgentRepository;
 import org.agency.course_work.repository.ClubRepository;
 import org.agency.course_work.repository.PlayerRepository;
-import org.checkerframework.checker.units.qual.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +24,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -69,23 +66,17 @@ public class PlayerService {
 
     public PlayerDto createPlayer(PlayerCreationDto playerDto) {
         logger.info("Creating new player with agent ID: {} and club ID: {}", playerDto.agentId(), playerDto.clubId());
-
         try {
-            // Check if agent exists
             if (!agentRepository.existsById(playerDto.agentId())) {
                 logger.warn("Agent with ID: {} not found", playerDto.agentId());
                 throw new AgentNotFound("Agent not found with ID: " + playerDto.agentId());
             }
             Agent agent = agentRepository.getReferenceById(playerDto.agentId());
-
-            // Check if club exists
             if (!clubRepository.existsById(playerDto.clubId())) {
                 logger.warn("Club with ID: {} not found", playerDto.clubId());
                 throw new ClubNotFound("Club not found with ID: " + playerDto.clubId());
             }
             Club club = clubRepository.getReferenceById(playerDto.clubId());
-
-            // Create and save player
             Player player = playerMapper.toEntity(playerDto);
             player.setAgent(agent);
             player.setClub(club);
@@ -103,13 +94,11 @@ public class PlayerService {
     @Transactional(readOnly = true)
     public PlayerAgentDto getPlayerWithAgent(Long playerId) {
         logger.info("Fetching player with ID: {} and associated agent", playerId);
-
         try {
             Player player = playerRepository.findById(playerId)
                     .orElseThrow(() -> new PlayerNotFound("Player not found"));
             Agent agent = player.getAgent();
             logger.info("Successfully fetched player with ID: {} and agent info", playerId);
-
             return new PlayerAgentDto(
                     player.getId(), player.getCreatedAt(), player.getUpdatedAt(), player.getName() + " " + player.getSurname(),
                     player.getAge(), player.getPosition(), player.getNationality(), player.getValue(),

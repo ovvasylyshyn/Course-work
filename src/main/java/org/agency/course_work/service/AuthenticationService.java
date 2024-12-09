@@ -20,12 +20,10 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
-    // Системний пароль для надання ролі адміністратора
     @Value("${admin.system.password}")
     private String adminSystemPassword;
 
     public JwtAuthenticationResponse signUp(SignUpRequest request) {
-        // Визначаємо роль на основі того, чи введено правильний системний пароль
         Role role = adminSystemPassword.equals(request.getPassword())
                 ? Role.ROLE_ADMIN
                 : Role.ROLE_USER;
@@ -33,7 +31,7 @@ public class AuthenticationService {
         var user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword())) // Використовуємо введений пароль
+                .password(passwordEncoder.encode(request.getPassword()))
                 .role(role)
                 .build();
 
